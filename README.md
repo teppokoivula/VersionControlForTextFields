@@ -17,3 +17,17 @@ if it doesn't, there's no guarantee that it'll ever get properly fixed.
 
 That said, if you do decide to install it anyway, I'd love to hear how it
 worked (or didn't work) for you. All suggestions are welcome too!
+
+## Getting started
+
+Copy VersionControlForTextFields folder to /site/modules/, go to Admin > Modules,
+hit "Check for new modules" and install Process Changelog. Revision History For 
+Text Fields module will be installed automatically with Version Control For Text 
+Fields.
+
+After installing this module you need to configure it before anything really
+starts happening. Most configuration options (essentially templates and fields
+this module is switched on for) can be found from Admin > Modules > Version
+Control For Text Fields (module config.) Minor settings can also be found from
+related Process modules config: Admin > Modules > Revision History For Text
+Fields.
