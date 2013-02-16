@@ -1,0 +1,60 @@
+#text-field-history {
+    display: none;
+}
+
+.ui-widget-header.with-history {
+    background-position: 50% top;
+}
+
+.ui-widget-header .field-revisions {
+    position: absolute;
+    padding-top: 36px;
+    margin-top: -24px;
+    display: none;
+    z-index: 99;
+    right: 10px;
+}
+
+.ui-widget-header .field-revisions ul {
+    margin: 0;
+    width: 200px;
+    padding: 10px;
+    line-height: 1em;
+    overflow-y: auto;
+    max-height: 350px;
+    border-radius: 2px;
+    background: #d9e8ed;
+    border: 1px solid #c4d4da;
+    box-shadow: 1px 2px 2px rgba(0,0,0,0.1), inset 0 0 3px rgba(255,255,255,0.5);
+}
+
+.ui-widget-header .field-revisions li {
+    margin: 0;
+}
+
+.ui-widget-header .field-revisions li.parity-odd {
+}
+
+.ui-widget-header .field-revision-toggle {
+    margin: 0 5px;
+    color: #f10055;
+    display: block;
+    padding: 5px 4px;
+    font-weight: normal;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.ui-widget-header .field-revision-toggle em {
+    float: right;
+}
+
+.ui-widget-header .field-revision-toggle:hover {
+    color: white;
+    text-shadow: none;
+}
+
+.ui-widget-header .field-revision-toggle.active {
+    color: #333;
+    cursor: default;
+    background: transparent;
+}

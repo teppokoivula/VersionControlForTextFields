@@ -1,0 +1,266 @@
+<?php
+
+/**
+ * Simplified version control for text type fields
+ *
+ * This module serves as kind of an interface for Version Control For Text
+ * Fields module by generating markup it requires based on various GET
+ * params and making it available via ProcessWire Admin page.
+ *
+ * See comments of main module for more information.
+ *
+ * @copyright Copyright (c) 2013, Teppo Koivula
+ *
+ * ProcessWire 2.x 
+ * Copyright (C) 2012 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://processwire.com
+ *
+ */
+ 
+class ProcessRevisionHistoryForTextFields extends Process implements ConfigurableModule {
+    
+    /**
+     * Return information about this module (required)
+     *
+     * @return array
+     */
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Revision History For Text Fields',
+            'summary' => 'Provides data for Version Control For Text Fields module',
+            'href' => '',
+            'author' => 'Teppo Koivula',
+            'version' => 001,
+            'singular' => true,
+            'autoload' => false,
+            'requires' => 'VersionControlForTextFields'
+        ); 
+    }
+    
+    /**
+     * Default configuration for this module
+     *
+     * The point of putting this in it's own function is so that you don't have to specify
+     * these defaults more than once.
+     *
+     * @return array
+     */
+    static public function getDefaultData() {
+        return array(
+            'date_format' => 'Y-m-d H:i:s'
+        );
+    }
+    
+    /**
+     * Names of admin page and database tables used by this module
+     * 
+     * Note that table used here is actually created and managed by another module, which is also why
+     * it's name differs from current modules name. Data table is used as a storage table for actual
+     * revision data (content) while main table provides dates, user and page id's etc. (metadata.)
+     *
+     */
+    const PAGE_NAME = 'revision-history-for-text-fields';
+    const TABLE_NAME = 'version_control_for_text_fields';
+    const DATA_TABLE_NAME = 'version_control_for_text_fields__data';
+
+    /**
+     * Populate the default config data
+     *
+     * ProcessWire will automatically overwrite it with anything the user has specifically configured.
+     * This is done in construct() rather than init() because ProcessWire populates config data after
+     * construct(), but before init().
+     *
+     */
+    public function __construct() {
+        foreach(self::getDefaultData() as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+    /**
+     * Module configuration
+     *
+     * @param array $data
+     * @return InputfieldWrapper
+     */
+    static public function getModuleConfigInputfields(array $data) {
+
+        // this is a container for fields, basically like a fieldset
+        $fields = new InputfieldWrapper();
+
+        // since this is a static function, we can't use $this->modules, so get them from the global wire() function
+        $modules = wire('modules');
+
+        // merge default config settings (custom values overwrite defaults)
+        $defaults = self::getDefaultData();
+        $data = array_merge($defaults, $data);
+
+        // date format used
+        $field = $modules->get("InputfieldText");
+        $field->name = "date_format";
+        $field->label = "Date Format";
+        $field->notes = "See the [PHP date](http://www.php.net/manual/en/function.date.php) function reference for more information on how to customize this format.";
+        $field->value = ($data['date_format']) ? $data['date_format'] : $defaults['date_format'];
+        $field->size = 70;
+        $fields->add($field);
+
+        return $fields;
+
+    }
+
+    /**
+     * Initialization function called before any execute functions
+     *
+     */
+    public function init() {
+        parent::init();
+    }
+
+    /**
+     * Executed when a page with this Process assigned is accessed
+     *
+     */
+    public function ___execute() {
+        
+        // should date formatting occur?
+        $defaults = self::getDefaultData();
+        $date_format = ($this->date_format != $defaults['date_format']) ? $this->date_format : null;
+
+        // get pages id
+        $pages_id = (isset($this->input->get->pages_id)) ? (int) $this->input->get->pages_id : null;
+        if (!$pages_id) throw new WireException("Missing required GET param pages_id");
+
+        // find values
+        $sql = "
+        SELECT f.name as field_name, m.timestamp, m.users_id, m.username, d.*
+        FROM fields AS f, " . self::TABLE_NAME . " AS m, " . self::DATA_TABLE_NAME . " AS d
+        WHERE m.pages_id = $pages_id AND d." . self::TABLE_NAME . "_id = m.id AND f.id = m.fields_id
+        ORDER BY f.name, d.id DESC
+        ";
+        $result = $this->db->query($sql);
+
+        // generate markup
+        $field = "";
+        $markup = "";
+        while ($row = mysqli_fetch_array($result)) {
+            if ($row['users_id']) {
+                $users_id = (int) $row['users_id'];
+                if ($user = $this->users->get($users_id)) {
+                    $username = $user->name;
+                } else {
+                    $username = wire('sanitizer')->name($row['username']);
+                }
+            }
+            $name = $row['field_name'];
+            $data = $row['data'];
+            $row_id = $row['id'];
+            $date = ($date_format) ? date($date_format, strtotime($row['timestamp'])) : $row['timestamp'];
+            if ($name != $field) {
+                if ($field) $markup .= "</ul></div>";
+                $markup .= "<div class='field-revisions' data-field='$name'><ul>";
+                $field = $name;
+            }
+            $markup .= "<li>";
+            $markup .= "<a class='field-revision-toggle'";
+            $markup .= " data-field='$name'";
+            $markup .= " data-row-id='$row_id'";
+            $markup .= " data-date='$date'";
+            $markup .= " href='#'>$date <em>$username</em></a>";
+            $markup .= "</li>";
+        }
+        $markup .= "</ul></div>";
+
+        // wrap generated markup with container div
+        $markup = "<div id='text-field-history'>$markup</div>";
+
+        exit($markup);
+
+    }    
+
+    /**
+     * Executed when /processwire/setup/text-field-history/get is accessed
+     *
+     */
+    public function ___executeGet() {
+
+        // get row id
+        $id = (isset($this->input->get->id)) ? (int) $this->input->get->id : null;
+        if (!$id) throw new WireException("Missing required GET param id");
+
+        // find values
+        $sql = "
+        SELECT d.*
+        FROM " . self::DATA_TABLE_NAME . " AS d
+        WHERE d.id = $id
+        ";
+        $result = $this->db->query($sql);
+
+        // generate markup
+        $markup = "";
+        if ($result->num_rows) {
+            while ($row = mysqli_fetch_array($result)) {
+                $markup .= $row['data'];
+            }
+        }
+
+        exit($markup);
+
+    }
+
+    /**
+     * Called only when this module is installed
+     *
+     * Creates new page with this Process module assigned and new database
+     * table for storing history data.
+     *
+     */
+    public function ___install() {
+
+        // create a page for this module
+        $page = new Page();
+        $page->template = 'admin';
+        $page->name = self::PAGE_NAME; 
+        $page->process = $this; 
+
+        // insert page under setup at admin
+        $page->parent = $this->pages->get($this->config->adminRootPageID)->child('name=setup');
+
+        // make page title match module title
+        $info = self::getModuleInfo();
+        $page->title = $info['title'];
+
+        // hide page from menu
+        $page->addStatus(Page::statusHidden);
+
+        // save the page
+        $page->save();
+
+        // tell user that we've created a new page
+        $this->message("Created Page: {$page->path}"); 
+
+    }
+
+    /**
+     * Called only when this module is uninstalled
+     *
+     * Removes page associated with this Process module and also drops related table.
+     *
+     */
+    public function ___uninstall() {
+
+        // find the page we installed, locating it by the process field (which has the module ID)
+        // it would probably be sufficient just to locate by name, but this is just to be extra sure.
+        $moduleID = $this->modules->getModuleID($this); 
+        $page = $this->pages->get("template=admin, process=$moduleID, name=" . self::PAGE_NAME); 
+
+        if ($page->id) {
+            // if we found the page, let the user know and delete it
+            $this->message("Deleting Page: {$page->path}"); 
+            $page->delete();
+        }
+
+    }
+    
+}

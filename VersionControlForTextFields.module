@@ -1,0 +1,296 @@
+<?php
+
+/**
+ * Simplified version control for text type fields
+ *
+ * This module attempts to use hooks provided by ProcessWire to catch page edits,
+ * find out which fields were changed and if text fields (such as FieldtypeText, 
+ * FieldtypeTextarea etc.) were changed their values are saved for later use.
+ *
+ * PLEASE KEEP IN MIND THAT THIS MODULE IS EXPERIMENTAL AND IT'S DEVELOPER TAKES
+ * NO RESPONSIBILITY FOR ANY LOSS OF DATA, MONEY OR SANITY IT MIGHT CAUSE.
+ * 
+ * Sorry for shouting, but it really is quite important that you understand the
+ * point I'm trying to make above. This is a proof-of-concept module rather than
+ * anything production ready. It may or may not work properly at the moment and
+ * if it doesn't, there's no guarantee that it'll ever get properly fixed.
+ * 
+ * That said, if you do decide to install it anyway, I'd love to hear how it
+ * worked (or didn't work) for you. All suggestions are welcome too!
+ * 
+ * @copyright Copyright (c) 2013, Teppo Koivula
+ *
+ * ProcessWire 2.x 
+ * Copyright (C) 2013 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://processwire.com
+ *
+ */
+ 
+class VersionControlForTextFields extends WireData implements Module, ConfigurableModule {
+
+    /**
+     * Return information about this module (required)
+     *
+     * @return array
+     */
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Version Control For Text Fields',
+            'summary' => 'Simplified version control for text type fields. PROOF OF CONCEPT.',
+            'href' => '',
+            'author' => 'Teppo Koivula',
+            'version' => 001,
+            'singular' => true,
+            'autoload' => true,
+            'installs' => 'ProcessRevisionHistoryForTextFields'
+        ); 
+    }
+
+    /**
+     * Container for field data
+     *
+     */
+    protected $page_data = array();
+
+    /**
+     * Names of database tables used by this module
+     *
+     * Data table is used as a storage table for actual revision data (content) while main table provides dates, user
+     * and page id's etc. (metadata.)
+     *
+     */
+    const TABLE_NAME = 'version_control_for_text_fields';
+    const DATA_TABLE_NAME = 'version_control_for_text_fields__data';
+
+    /**
+     * Module configuration
+     *
+     * @param array $data
+     * @return InputfieldWrapper
+     */
+    static public function getModuleConfigInputfields(array $data) {
+
+        // this is a container for fields, basically like a fieldset
+        $fields = new InputfieldWrapper();
+
+        // since this is a static function, we can't use $this->modules, so get them from the global wire() function
+        $modules = wire('modules');
+
+        // for which templates should we track values?
+        $field = $modules->get("InputfieldAsmSelect");
+        $field->name = "enabled_templates";
+        $field->label = __("Enable history for these templates");
+        $selectable_templates = wire('templates')->find('name!=admin, !name^=repeater_');
+        foreach ($selectable_templates as $key => $template) {
+            // remove system templates
+            if ($template->flags & Template::flagSystem) {
+                unset($selectable_templates[$key]);
+            }
+        }
+        $field->addOptions($selectable_templates->getArray());
+        if (isset($data['enabled_templates'])) $field->value = $data['enabled_templates'];
+        $fields->add($field);
+        
+        // for which fields should we track values?
+        $field = $modules->get("InputfieldAsmSelect");
+        $field->name = "enabled_fields";
+        $field->label = __("Enable history for these fields");
+        $field->notes = __("Only Text and Textarea fields can be selected.");
+        $field->addOptions(wire('fields')->find('type=FieldtypeText|FieldtypeTextarea')->getArray());
+        if (isset($data['enabled_fields'])) $field->value = $data['enabled_fields'];
+        $fields->add($field);
+
+        return $fields;
+
+    }
+
+    /**
+     * Initialization function
+     *
+     * This function attachs required hooks.
+     *
+     */
+    public function init() {
+
+        if (count($this->enabled_templates) && count($this->enabled_fields)) {
+            // add hooks that gather information and trigger insert
+            $this->pages->addHook('saveReady', $this, 'gather'); 
+            $this->pages->addHookAfter('save', $this, 'insert'); 
+            // add hook that injects additional scripts and/or styles
+            $this->addHookAfter('ProcessController::execute', $this, 'inject');
+        }
+
+    }
+
+    /**
+     * After page has being edited, track changed fields and trigger insert method to
+     * save their values to database (or any other applicable storage medium.)
+     *
+     * @param HookEvent $event
+     */
+    public function gather(HookEvent $event) {
+
+        $page = $event->arguments[0];
+
+        // check if tracking values has been enabled to current pages template
+        if (!in_array($page->template->id, $this->enabled_templates)) return;
+
+        // if page has no id, it's currently being added
+        if (!$page->id) return;
+
+        if ($page->isChanged()) {
+            foreach ($page->template->fields as $field) {
+                if ($page->isChanged($field) && in_array($field->id, $this->enabled_fields)) {
+                    if (!isset($this->page_data[$page->id])) $this->page_data[$page->id] = array();
+                    // using array to store field data isn't really necessary at the moment,
+                    // but it's not harmful either and could make it easier to support more
+                    // fields at some (distant) point in the future.
+                    $this->page_data[$page->id][$field->id] = array(
+                        'data' => $page->get($field->name)
+                    );
+                }
+            }
+        }
+        
+    }
+
+    /**
+     * Insert row into database or other suitable medium (currently only database
+     * is supported, though..)
+     *
+     * @param HookEvent $event
+     */
+    public function insert(HookEvent $event) {
+
+        $page = $event->arguments[0];
+        $users_id = $this->user->id;
+        $username = $this->user->name;
+        $page_data = isset($this->page_data[$page->id]) ? $this->page_data[$page->id] : null;
+
+        // return if no data exists
+        if (!$page_data) return;
+
+        foreach ($page_data as $fields_id => $field_data) {
+
+            // insert new row to database table containing history rows
+            $sql_fields = "pages_id, fields_id, users_id, username";
+            $sql_values = "{$page->id}, $fields_id, $users_id, '$username'";
+            $sql = "INSERT INTO " . self::TABLE_NAME . " ($sql_fields) VALUES ($sql_values)";
+            $this->db->query($sql);
+
+            // id of inserted database row
+            $insert_id = $this->db->insert_id;
+
+            // insert field data to another table
+            $sql_fields = self::TABLE_NAME . "_id, property, data";
+            foreach ($field_data as $property => $data) {
+                $data = $this->db->real_escape_string($data);
+                $property = $this->db->real_escape_string($property);
+                $sql_values = "$insert_id, '$property', '$data'";
+                $sql = "INSERT INTO " . self::DATA_TABLE_NAME . " ($sql_fields) VALUES ($sql_values)";
+                $this->db->query($sql);
+            }
+
+        }
+        
+    }
+    
+    /**
+     * This function is executed before page markup has been created
+     *
+     * Used for injecting custom scripts, styles and/or markup to admin
+     * page. Purpose of these is to allow viewing and possibly managing
+     * version history.
+     *
+     * @param HookEvent $event
+     */
+    public function inject(HookEvent $event) {
+
+        // this only applies to process page edit
+        if ($this->page->process !== "ProcessPageEdit") return;
+
+        // make sure that value tracking is enabled for template of
+        // the page currently being edited
+        $page = $this->pages->get((int) $this->input->get->id);
+        if (!$page || !in_array($page->template->id, $this->enabled_templates)) return;
+
+        // inject scripts and styles
+		$class = $this->className();
+		$info = $this->getModuleInfo();
+		$version = (int) $info['version']; 
+		if (is_file($this->config->paths->$class . "$class.css")) $this->config->styles->add($this->config->urls->$class . "$class.css?v=$version"); 
+		if (is_file($this->config->paths->$class . "$class.js")) $this->config->scripts->add($this->config->urls->$class . "$class.js?v=$version"); 
+
+    }
+
+    /**
+     * Called only when this module is installed
+     *
+     * Creates new database table for storing data.
+     *
+     */
+    public function ___install() {
+        
+        // main table, contains mostly metadata
+        $sql = "
+        CREATE TABLE " . self::TABLE_NAME . " (
+            id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            pages_id INT UNSIGNED NOT NULL,
+            fields_id INT UNSIGNED NOT NULL,
+            users_id INT UNSIGNED DEFAULT NULL,
+            username VARCHAR(255) DEFAULT NULL,
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE = MYISAM;
+        ";
+        $this->db->query($sql);
+
+        // tell the user that we've created new database table
+        $this->message("Created Table: " . self::TABLE_NAME);
+
+        // data table, contains actual content for edited fields
+        // @todo: add other methods for storing data, ie. files,
+        // and make creating and using this table optional.
+        $sql = "
+        CREATE TABLE " . self::DATA_TABLE_NAME . " (
+            id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            " . self::TABLE_NAME . "_id INT UNSIGNED NOT NULL,
+            property VARCHAR(255) NOT NULL,
+            data MEDIUMTEXT DEFAULT NULL
+        ) ENGINE = MYISAM;
+        ";
+        $this->db->query($sql);
+
+        // tell the user that we've created new database table
+        $this->message("Created Table: " . self::DATA_TABLE_NAME);
+
+    }
+
+    /**
+     * Called only when this module is uninstalled
+     *
+     * Drops database table associated with this module.
+     *
+     */
+     public function ___uninstall() {
+
+        // drop main table if exists
+        $sql = "SHOW TABLES LIKE '" . self::TABLE_NAME . "'";
+        $result = $this->db->query($sql);
+        if ($result->num_rows == 1) {
+            $this->db->query("DROP TABLE " . self::TABLE_NAME);
+            $this->message("Dropped Table: " . self::TABLE_NAME);
+        }
+
+        // drop data table if exists
+        $sql = "SHOW TABLES LIKE '" . self::DATA_TABLE_NAME . "'";
+        $result = $this->db->query($sql);
+        if ($result->num_rows == 1) {
+            $this->db->query("DROP TABLE " . self::DATA_TABLE_NAME);
+            $this->message("Dropped Table: " . self::DATA_TABLE_NAME);
+        }
+
+    }
+    
+}
