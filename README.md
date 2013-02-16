@@ -21,9 +21,8 @@ worked (or didn't work) for you. All suggestions are welcome too!
 ## Getting started
 
 Copy VersionControlForTextFields folder to /site/modules/, go to Admin > Modules,
-hit "Check for new modules" and install Process Changelog. Revision History For 
-Text Fields module will be installed automatically with Version Control For Text 
-Fields.
+hit "Check for new modules" and install Version Control For TextFields. Revision
+History For Text Fields module will be installed automatically.
 
 After installing this module you need to configure it before anything really
 starts happening. Most configuration options (essentially templates and fields
