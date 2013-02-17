@@ -49,6 +49,24 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
     }
 
     /**
+     * Default configuration for this module
+     *
+     * The point of putting this in it's own function is so that you don't have to specify
+     * these defaults more than once.
+     *
+     * @return array
+     */
+    static public function getDefaultData() {
+        return array(
+            'compatible_fieldtypes' => array(
+                'FieldtypeText',
+                'FieldtypeTextarea',
+                'FieldtypePageTitle'
+            )
+        );
+    }
+    
+    /**
      * Container for field data
      *
      */
@@ -65,6 +83,20 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
     const DATA_TABLE_NAME = 'version_control_for_text_fields__data';
 
     /**
+     * Populate the default config data
+     *
+     * ProcessWire will automatically overwrite it with anything the user has specifically configured.
+     * This is done in construct() rather than init() because ProcessWire populates config data after
+     * construct(), but before init().
+     *
+     */
+    public function __construct() {
+        foreach(self::getDefaultData() as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+    /**
      * Module configuration
      *
      * @param array $data
@@ -77,6 +109,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         // since this is a static function, we can't use $this->modules, so get them from the global wire() function
         $modules = wire('modules');
+
+        // merge default config settings (custom values overwrite defaults)
+        $defaults = self::getDefaultData();
+        $data = array_merge($defaults, $data);
 
         // for which templates should we track values?
         $field = $modules->get("InputfieldAsmSelect");
@@ -93,12 +129,23 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         if (isset($data['enabled_templates'])) $field->value = $data['enabled_templates'];
         $fields->add($field);
         
+        // define fieldtypes considered compatible with this module
+        $field = $modules->get("InputfieldAsmSelect");
+        $field->name = "compatible_fieldtypes";
+        $field->label = __("Consider these fieldtypes compatible with this module");
+        $selectable_fieldtypes = $modules->find('className^=Fieldtype, !className^=FieldtypeFieldset');
+        $field->addOptions($selectable_fieldtypes->getArray());
+        $field->notes = __("Please note that selecting any fieldtypes not selected by default may result in various problems.");
+        if (isset($data['compatible_fieldtypes'])) $field->value = $data['compatible_fieldtypes'];
+        $fields->add($field);
+        
         // for which fields should we track values?
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_fields";
         $field->label = __("Enable history for these fields");
-        $field->notes = __("Only Text and Textarea fields can be selected.");
-        $field->addOptions(wire('fields')->find('type=FieldtypeText|FieldtypeTextarea')->getArray());
+        $field->notes = __("Only fields of compatible fieldtypes can be selected.");
+        $types = implode($data['compatible_fieldtypes'], "|");
+        $field->addOptions(wire('fields')->find("type=$types")->getArray());
         if (isset($data['enabled_fields'])) $field->value = $data['enabled_fields'];
         $fields->add($field);
 
