@@ -118,10 +118,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_templates";
         $field->label = __("Enable history for these templates");
-        $selectable_templates = wire('templates')->find('name!=admin, !name^=repeater_');
+        $selectable_templates = wire('templates')->find('name!=admin');
         foreach ($selectable_templates as $key => $template) {
-            // remove system templates
-            if ($template->flags & Template::flagSystem) {
+            // remove system templates (including repeaters)
+            if (($template->flags & Template::flagSystem)) {
                 unset($selectable_templates[$key]);
             }
         }
@@ -133,7 +133,13 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "compatible_fieldtypes";
         $field->label = __("Consider these fieldtypes compatible with this module");
-        $selectable_fieldtypes = $modules->find('className^=Fieldtype, !className^=FieldtypeFieldset');
+        $selectable_fieldtypes = $modules->find('className^=Fieldtype');
+        foreach ($selectable_fieldtypes as $key => $fieldtype) {
+            // remove fieldtypes already known to be incompatible
+            if (strpos($fieldtype->className, 'FieldtypeFieldset') === 0) {
+                unset($selectable_fieldtypes[$key]);
+            }
+        }
         $field->addOptions($selectable_fieldtypes->getArray());
         $field->notes = __("Please note that selecting any fieldtypes not selected by default may result in various problems.");
         if (isset($data['compatible_fieldtypes'])) $field->value = $data['compatible_fieldtypes'];
