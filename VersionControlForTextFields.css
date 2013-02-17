@@ -6,6 +6,10 @@
     background-position: 50% top;
 }
 
+.InputfieldColumnWidth {
+    position: relative;
+}
+
 .ui-widget-header .field-revisions {
     position: absolute;
     padding-top: 36px;
