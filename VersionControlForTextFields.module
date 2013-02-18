@@ -266,7 +266,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         // make sure that value tracking is enabled for template of
         // the page currently being edited
-        $page = $this->page->process->getPage(); 
+        $page = $this->process->getPage(); 
         if (!$page || !$page->id || !in_array($page->template->id, $this->enabled_templates)) return;
 
         // inject scripts and styles
