@@ -41,7 +41,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields. PROOF OF CONCEPT.',
             'href' => '',
             'author' => 'Teppo Koivula',
-            'version' => 002,
+            'version' => 003,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -155,6 +155,26 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         if (isset($data['enabled_fields'])) $field->value = $data['enabled_fields'];
         $fields->add($field);
 
+        // for how long should collected data be retained?
+        if ($modules->isInstalled("LazyCron")) {
+            $field = $modules->get("InputfieldSelect");
+            $field->addOption('1 WEEK', __('1 week'));
+            $field->addOption('2 WEEK', __('2 weeks'));
+            $field->addOption('1 MONTH', __('1 month'));
+            $field->addOption('2 MONTH', __('2 months'));
+            $field->addOption('3 MONTH', __('3 months'));
+            $field->addOption('6 MONTH', __('6 months'));
+            $field->addOption('1 YEAR', __('1 year'));
+            $field->notes = __("Leave empty to disable automatic cleanup.");
+            if (isset($data['data_max_age'])) $field->value = $data['data_max_age'];
+        } else {
+            $field = $modules->get("InputfieldMarkup");
+            $field->description = __("Automatic cleanup requires LazyCron module, which isn't currently installed.");
+        }
+        $field->label = __("For how long should we retain collected data?");
+        $field->name = "data_max_age";
+        $fields->add($field);
+
         return $fields;
 
     }
@@ -167,6 +187,9 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      */
     public function init() {
 
+        // remove expired rows daily
+        $this->addHook("LazyCron::everyDay", $this, 'cleanup');
+
         if (count($this->enabled_templates) && count($this->enabled_fields)) {
             // add hooks that gather information and trigger insert
             $this->pages->addHook('saveReady', $this, 'gather'); 
@@ -174,6 +197,23 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             // add hook that injects additional scripts and/or styles
             $this->addHookAfter('ProcessController::execute', $this, 'inject');
         }
+
+    }
+
+    /**
+     * Delete data older than max age defined in module settings
+     *
+     */
+    public function cleanup() {
+
+        if (!$this->data_max_age) return;
+
+        $t1 = self::TABLE_NAME;
+        $t2 = self::DATA_TABLE_NAME;
+        $interval = $this->db->escape_string($this->data_max_age);
+        $sql = "DELETE $t1, $t2 FROM $t1, $t2 WHERE $t1.timestamp < DATE_SUB(NOW(), INTERVAL $interval) AND $t2.{$t1}_id = $t1.id";
+        
+        $this->db->query($sql);
 
     }
 
