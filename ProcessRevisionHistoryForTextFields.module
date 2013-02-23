@@ -167,7 +167,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             $markup .= " data-field='$name'";
             $markup .= " data-row-id='$row_id'";
             $markup .= " data-date='$date'";
-            $markup .= " href='#'>$date <em>$username</em></a>";
+            $markup .= " href='#'><span>$date</span> <em>$username</em></a>";
             $markup .= "</li>";
         }
         $markup .= "</ul></div>";

@@ -21,7 +21,6 @@
 
 .ui-widget-header .field-revisions ul {
     margin: 0;
-    width: 200px;
     padding: 10px;
     line-height: 1em;
     overflow-y: auto;
@@ -36,20 +35,23 @@
     margin: 0;
 }
 
-.ui-widget-header .field-revisions li.parity-odd {
-}
-
 .ui-widget-header .field-revision-toggle {
     margin: 0 5px;
     color: #f10055;
-    display: block;
     padding: 5px 4px;
+    white-space: nowrap;
     font-weight: normal;
+    display: inline-block;
     text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.ui-widget-header .field-revision-toggle span {
+    float: left;
 }
 
 .ui-widget-header .field-revision-toggle em {
     float: right;
+    padding-left: 2em;
 }
 
 .ui-widget-header .field-revision-toggle:hover {

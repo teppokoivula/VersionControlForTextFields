@@ -54,9 +54,15 @@ $(function() {
               return false;
           });
 
-          $('.field-revisions').on('mouseleave', function() {
-              $(this).slideUp();
-          });
+          $('.field-revisions')
+              .on('mouseleave', function() {
+                  $(this).slideUp();
+              })
+              .each(function() {
+                  if ($(this).height() > 350) {
+                      $(this).children().css('padding-right', '26px');
+                  } else console.log($(this).height());
+              });
 
       });
 
