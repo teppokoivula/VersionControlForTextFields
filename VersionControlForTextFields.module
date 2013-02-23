@@ -41,7 +41,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields. PROOF OF CONCEPT.',
             'href' => '',
             'author' => 'Teppo Koivula',
-            'version' => 003,
+            'version' => 004,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -175,6 +175,15 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field->name = "data_max_age";
         $fields->add($field);
 
+        // should we limit the amount of revisions saved for each field + page combination?
+        $field = $modules->get("InputfieldSelect");
+        $field->name = "data_row_limit";
+        $field->label = __("Revisions retained for each field + page combination");
+        $field->addOptions(array(10 => '10', 20 => '20', 50 => '50', 100 => '100'));
+        $field->notes = __("Leave empty to not limit stored revisions at all.");
+        if (isset($data['data_row_limit'])) $field->value = $data['data_row_limit'];
+        $fields->add($field);
+
         return $fields;
 
     }
@@ -284,6 +293,26 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                 $sql_values = "$insert_id, '$property', '$data'";
                 $sql = "INSERT INTO " . self::DATA_TABLE_NAME . " ($sql_fields) VALUES ($sql_values)";
                 $this->db->query($sql);
+            }
+
+            // enforce row limit (if set)
+            if ($this->data_row_limit) {
+                $ids = "";
+                $t1 = self::TABLE_NAME;
+                $t2 = self::DATA_TABLE_NAME;
+                $sql = "SELECT COUNT(*) FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
+                $result = $this->db->query($sql);
+                $row = mysqli_fetch_array($result);
+                if ($row[0] > $this->data_row_limit) {
+                    $limit = $row[0] - $this->data_row_limit;
+                    $sql = "SELECT id FROM $t1 ORDER BY timestamp LIMIT $limit";
+                    $result = $this->db->query($sql);
+                    while ($row = mysqli_fetch_array($result)) {
+                        $ids .= ($ids) ? ", " . $row[0] : $row[0];
+                    }
+                    $sql = "DELETE $t1, $t2 FROM $t1, $t2 WHERE $t1.id IN ($ids) AND $t2.{$t1}_id = $t1.id";
+                    $this->db->query($sql);
+                }
             }
 
         }
