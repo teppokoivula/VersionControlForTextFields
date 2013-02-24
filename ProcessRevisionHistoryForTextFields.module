@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => '',
             'author' => 'Teppo Koivula',
-            'version' => 090,
+            'version' => 90,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
