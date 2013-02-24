@@ -23,7 +23,7 @@ $(function() {
               }
           });
 
-          $('.field-revision-toggle').on('click', function() {
+          $('.field-revision-toggle').bind('click', function() {
               $this = $(this);
               if ($this.hasClass('active')) return false;
               $this.parents('li.Inputfield:first').find('.field-revision-toggle.active').removeClass('active');
@@ -46,7 +46,7 @@ $(function() {
               return false;
           });
 
-          $('.field-revisions-toggle').on('click mouseenter', function() {
+          $('.field-revisions-toggle').bind('click mouseenter', function() {
               $revisions = $(this).siblings('.field-revisions');
               var show = ($revisions.is(':visible')) ? false : true;
               $('.field-revisions').slideUp();
@@ -55,7 +55,7 @@ $(function() {
           });
 
           $('.field-revisions')
-              .on('mouseleave', function() {
+              .bind('mouseleave', function() {
                   $(this).slideUp();
               })
               .each(function() {
