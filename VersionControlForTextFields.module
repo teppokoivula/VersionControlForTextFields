@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => '',
             'author' => 'Teppo Koivula',
-            'version' => 90,
+            'version' => 91,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'

@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => '',
             'author' => 'Teppo Koivula',
-            'version' => 90,
+            'version' => 91,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -159,16 +159,16 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             $date = ($date_format) ? date($date_format, strtotime($row['timestamp'])) : $row['timestamp'];
             if ($name != $field) {
                 if ($field) $markup .= "</ul></div>";
-                $markup .= "<div class='field-revisions' data-field='$name'><ul>";
+                $markup .= "<div class='field-revisions' data-field='$name'><ul class='ui-widget-content'>";
                 $field = $name;
             }
-            $markup .= "<li>";
-            $markup .= "<a class='field-revision-toggle'";
-            $markup .= " data-field='$name'";
-            $markup .= " data-row-id='$row_id'";
-            $markup .= " data-date='$date'";
-            $markup .= " href='#'><span>$date</span> <em>$username</em></a>";
-            $markup .= "</li>";
+            $markup .= "<li><a"
+                     . " data-field='$name'"
+                     . " data-row-id='$row_id'"
+                     . " data-date='$date'"
+                     . " href='#'>"
+                     . "<span>$date</span> <em>$username</em>"
+                     . "</a></li>";
         }
         $markup .= "</ul></div>";
 
