@@ -30,7 +30,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         return array(
             'title' => 'Revision History For Text Fields',
             'summary' => 'Provides data for Version Control For Text Fields module',
-            'href' => '',
+            'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
             'version' => 91,
             'singular' => true,
