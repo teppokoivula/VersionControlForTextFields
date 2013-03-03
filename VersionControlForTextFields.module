@@ -103,7 +103,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $defaults = self::getDefaultData();
         $data = array_merge($defaults, $data);
 
-        // for which templates should we track values?
+        /** 
+         * for which templates should we track values?
+         * @todo remove field if it's fieldtype is no longer supported
+         */
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_templates";
         $field->label = __("Enable history for these templates");
