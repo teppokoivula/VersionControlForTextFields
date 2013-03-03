@@ -7,6 +7,7 @@ $(function() {
           $('body').prepend(data);
 
           $('#text-field-history > div').each(function() {
+              if ($(this).find('li').length < 2) return;
               $('.ui-widget-header[for=Inputfield_'+$(this).attr('data-field')+']')
                   .addClass('with-history')
                   .after($(this));
