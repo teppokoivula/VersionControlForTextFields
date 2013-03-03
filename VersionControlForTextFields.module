@@ -299,7 +299,9 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                     while ($row = mysqli_fetch_array($result)) {
                         $ids .= ($ids) ? ", " . $row[0] : $row[0];
                     }
-                    $sql = "DELETE $t1, $t2 FROM $t1, $t2 WHERE $t1.id IN ($ids) AND $t2.{$t1}_id = $t1.id";
+                    $sql = "DELETE FROM $t1 WHERE id IN ($ids)";
+                    $this->db->query($sql);
+                    $sql = "DELETE FROM $t2 WHERE {$t1}_id IN ($ids)";
                     $this->db->query($sql);
                 }
             }
