@@ -25,22 +25,26 @@ $(function() {
           $('.field-revisions a').bind('click', function() {
               if ($(this).hasClass('ui-state-active')) return false;
               var $this = $(this);
-              var $field = $this.attr('data-field');
-              var $row_id = $this.attr('data-row-id');
+              var field = $(this).attr('data-field');
+              var revision = $this.attr('data-revision');
               $this.parents('li.Inputfield:first').find('.field-revisions .ui-state-active').removeClass('ui-state-active');
               $this.addClass('ui-state-active');
               $this.parents('li.Inputfield:first').find('div.ui-widget-content').css('opacity', '0.25');
-              $.get(if_url+'get', {id: $row_id}, function(data) {
-                  if (tinyMCE && tinyMCE.get('Inputfield_'+$field)) {
-                      tinyMCE.get('Inputfield_'+$field).setContent(data);
-                  } else if ($this.parents('li.Inputfield:first').find('textarea').length) {
-                      $this.parents('li.Inputfield:first').find('textarea').html(data);
-                  } else {
-                      $this.parents('li.Inputfield:first').find('input[type=text]').val(data);
-                  }
-                  $this.parents('li.Inputfield:first').find('div.ui-widget-content').animate({
-                      opacity: 1
-                  }, 500);
+              $.get(if_url+'get', {id: revision}, function(json) {
+                  $.each(json, function(property, data) {
+                      var language = property.replace('data', '');
+                      if (language) language = "__"+language;
+                      if (tinyMCE && tinyMCE.get('Inputfield_'+field+language)) {
+                          tinyMCE.get('Inputfield_'+field+language).setContent(data);
+                      } else if ($this.parents('li.Inputfield:first').find('textarea').length) {
+                          $this.parents('li.Inputfield:first').find('textarea#Inputfield_'+field+language).html(data);
+                      } else {
+                          $this.parents('li.Inputfield:first').find('input[type=text]#Inputfield_'+field+language).val(data);
+                      }
+                      $this.parents('li.Inputfield:first').find('div.ui-widget-content').animate({
+                          opacity: 1
+                      }, 500);
+                  });
               });
               return false;
           });

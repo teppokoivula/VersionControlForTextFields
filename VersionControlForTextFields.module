@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 91,
+            'version' => 92,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -49,8 +49,11 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         return array(
             'compatible_fieldtypes' => array(
                 'FieldtypeText',
+                'FieldtypeTextLanguage',
                 'FieldtypeTextarea',
-                'FieldtypePageTitle'
+                'FieldtypeTextareaLanguage',
+                'FieldtypePageTitle',
+                'FieldtypePageTitleLanguage'
             )
         );
     }
@@ -60,6 +63,14 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      *
      */
     protected $page_data = array();
+
+    /**
+     * Data fields
+     *
+     * Each installed language needs one of these.
+     *
+     */
+    protected $data_fields = array();
 
     /**
      * Names of database tables used by this module
@@ -134,10 +145,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         if (isset($data['compatible_fieldtypes'])) $field->value = $data['compatible_fieldtypes'];
         $fields->add($field);
         
-        /**
-         * for which fields should we track values?
-         * @todo remove field if it's fieldtype is no longer supported
-         */
+        // for which fields should we track values?
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_fields";
         $field->label = __("Enable history for these fields");
@@ -187,6 +195,22 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      *
      */
     public function init() {
+
+        // init data fields
+        $this->data_fields = array();
+        if ($this->modules->isInstalled('LanguageSupport')) {
+            $language_support = $this->modules->get('LanguageSupport');
+            $default_language = $language_support->defaultLanguagePageID;
+            $this->data_fields = array($default_language => 'data');
+            $language_ids = $language_support->otherLanguagePageIDs;
+            if (count($language_ids)) {
+                foreach ($language_ids as $language_id) {
+                    $this->data_fields[$language_id] = "data$language_id";
+                }
+            }
+        } else {
+            $this->data_fields[] = 'data';
+        }
 
         // remove expired rows daily
         $this->addHook("LazyCron::everyDay", $this, 'cleanup');
@@ -279,12 +303,24 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
             // insert field data to another table
             $sql_fields = self::TABLE_NAME . "_id, property, data";
-            foreach ($field_data as $property => $data) {
-                $data = $this->db->real_escape_string($data);
-                $property = $this->db->real_escape_string($property);
-                $sql_values = "$insert_id, '$property', '$data'";
-                $sql = "INSERT INTO " . self::DATA_TABLE_NAME . " ($sql_fields) VALUES ($sql_values)";
-                $this->db->query($sql);
+            foreach ($field_data as $property => $value) {
+                if ($value instanceof LanguagesPageFieldValue) {
+                    $properties = array();
+                    foreach ($this->languages as $language) {
+                        $language_value = $value->getLanguageValue($language);
+                        if (!$language->isDefault()) $property .= $language->id;
+                        $properties[$property] = $language_value;
+                    }
+                } else {
+                    $properties = array($property => $value);
+                }
+                foreach ($properties as $property => $data) {
+                    $data = $this->db->real_escape_string($data);
+                    $property = $this->db->real_escape_string($property);
+                    $sql_values = "$insert_id, '$property', '$data'";
+                    $sql = "INSERT INTO " . self::DATA_TABLE_NAME . " ($sql_fields) VALUES ($sql_values)";
+                    $this->db->query($sql);
+                }
             }
 
             // enforce row limit (if set)

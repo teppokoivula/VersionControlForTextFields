@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 91,
+            'version' => 92,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -137,6 +137,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         SELECT f.name as field_name, m.timestamp, m.users_id, m.username, d.*
         FROM fields AS f, " . self::TABLE_NAME . " AS m, " . self::DATA_TABLE_NAME . " AS d
         WHERE m.pages_id = $pages_id AND d." . self::TABLE_NAME . "_id = m.id AND f.id = m.fields_id
+        GROUP BY m.id
         ORDER BY f.name, d.id DESC
         ";
         $result = $this->db->query($sql);
@@ -155,7 +156,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             }
             $name = $row['field_name'];
             $data = $row['data'];
-            $row_id = $row['id'];
+            $revision = $row[self::TABLE_NAME . '_id'];
             $date = ($date_format) ? date($date_format, strtotime($row['timestamp'])) : $row['timestamp'];
             if ($name != $field) {
                 if ($field) $markup .= "</ul></div>";
@@ -164,7 +165,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             }
             $markup .= "<li><a"
                      . " data-field='$name'"
-                     . " data-row-id='$row_id'"
+                     . " data-revision='$revision'"
                      . " data-date='$date'"
                      . " href='#'>"
                      . "<span>$date</span> <em>$username</em>"
@@ -185,7 +186,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
      */
     public function ___executeGet() {
 
-        // get row id
+        // get revision id
         $id = (isset($this->input->get->id)) ? (int) $this->input->get->id : null;
         if (!$id) throw new WireException("Missing required GET param id");
 
@@ -193,19 +194,22 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $sql = "
         SELECT d.*
         FROM " . self::DATA_TABLE_NAME . " AS d
-        WHERE d.id = $id
+        WHERE d." . self::TABLE_NAME . "_id = $id
         ";
         $result = $this->db->query($sql);
 
-        // generate markup
-        $markup = "";
+        // generate data (associative array)
+        $data = array();
         if ($result->num_rows) {
             while ($row = mysqli_fetch_assoc($result)) {
-                $markup .= $row['data'];
+                $data[$row['property']] = $row['data'];
             }
         }
 
-        exit($markup);
+        // return JSON
+        header('Content-type: application/json');
+        echo json_encode($data);
+        exit();
 
     }
 
