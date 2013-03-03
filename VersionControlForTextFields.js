@@ -1,7 +1,7 @@
 $(function() {
 
       var pages_id = $('#PageIDIndicator').text();
-      var if_url = '../../setup/revision-history-for-text-fields/';
+      var if_url = config.urls.admin+'setup/revision-history-for-text-fields/';
       $.get(if_url, {pages_id: pages_id}, function(data) {
 
           $('body').prepend(data);
