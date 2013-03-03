@@ -247,15 +247,17 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      *
      * Row limit applies to each unique page + field combination.
      *
+     * @param int $pages_id
+     * @param int $fields_id
      */
-    protected function cleanupExcessRows() {
+    protected function cleanupExcessRows($pages_id, $fields_id) {
 
         if (!$this->data_row_limit) return;
 
         $ids = "";
         $t1 = self::TABLE_NAME;
         $t2 = self::DATA_TABLE_NAME;
-        $sql = "SELECT COUNT(*) AS count FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
+        $sql = "SELECT COUNT(*) AS count FROM $t1 WHERE pages_id = $pages_id AND fields_id = $fields_id";
         $result = $this->db->query($sql);
         $row = mysqli_fetch_assoc($result);
         if ($row['count'] > $this->data_row_limit) {
@@ -355,7 +357,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             }
 
             // enforce row limit setting
-            $this->cleanupExcessRows();
+            $this->cleanupExcessRows($page->id, $fields_id);
 
         }
         
