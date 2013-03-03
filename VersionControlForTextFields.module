@@ -355,7 +355,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             }
 
             // enforce row limit setting
-            $this->removeExcessRows();
+            $this->cleanupExcessRows();
 
         }
         
