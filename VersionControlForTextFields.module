@@ -292,15 +292,15 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                 $ids = "";
                 $t1 = self::TABLE_NAME;
                 $t2 = self::DATA_TABLE_NAME;
-                $sql = "SELECT COUNT(*) FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
+                $sql = "SELECT COUNT(*) AS count FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
                 $result = $this->db->query($sql);
-                $row = mysqli_fetch_array($result);
-                if ($row[0] > $this->data_row_limit) {
+                $row = mysqli_fetch_assoc($result);
+                if ($row['count'] > $this->data_row_limit) {
                     $limit = $row[0] - $this->data_row_limit;
                     $sql = "SELECT id FROM $t1 ORDER BY timestamp LIMIT $limit";
                     $result = $this->db->query($sql);
-                    while ($row = mysqli_fetch_array($result)) {
-                        $ids .= ($ids) ? ", " . $row[0] : $row[0];
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        $ids .= ($ids) ? ", " . $row['id'] : $row['id'];
                     }
                     $sql = "DELETE FROM $t1 WHERE id IN ($ids)";
                     $this->db->query($sql);

@@ -144,7 +144,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         // generate markup
         $field = "";
         $markup = "";
-        while ($row = mysqli_fetch_array($result)) {
+        while ($row = mysqli_fetch_assoc($result)) {
             if ($row['users_id']) {
                 $users_id = (int) $row['users_id'];
                 if ($user = $this->users->get($users_id)) {
@@ -200,7 +200,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         // generate markup
         $markup = "";
         if ($result->num_rows) {
-            while ($row = mysqli_fetch_array($result)) {
+            while ($row = mysqli_fetch_assoc($result)) {
                 $markup .= $row['data'];
             }
         }
