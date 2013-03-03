@@ -243,6 +243,37 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
     }
 
     /**
+     * Delete data that exceeds row limit defined in module settings
+     *
+     * Row limit applies to each unique page + field combination.
+     *
+     */
+    protected function cleanupExcessRows() {
+
+        if (!$this->data_row_limit) return;
+
+        $ids = "";
+        $t1 = self::TABLE_NAME;
+        $t2 = self::DATA_TABLE_NAME;
+        $sql = "SELECT COUNT(*) AS count FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
+        $result = $this->db->query($sql);
+        $row = mysqli_fetch_assoc($result);
+        if ($row['count'] > $this->data_row_limit) {
+            $limit = $row['count'] - $this->data_row_limit;
+            $sql = "SELECT id FROM $t1 ORDER BY timestamp LIMIT $limit";
+            $result = $this->db->query($sql);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $ids .= ($ids) ? ", " . $row['id'] : $row['id'];
+            }
+            $sql = "DELETE FROM $t1 WHERE id IN ($ids)";
+            $this->db->query($sql);
+            $sql = "DELETE FROM $t2 WHERE {$t1}_id IN ($ids)";
+            $this->db->query($sql);
+        }
+
+    }
+
+    /**
      * After page has being edited, track changed fields and trigger insert method to
      * save their values to database (or any other applicable storage medium.)
      *
@@ -323,27 +354,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                 }
             }
 
-            // enforce row limit (if set)
-            if ($this->data_row_limit) {
-                $ids = "";
-                $t1 = self::TABLE_NAME;
-                $t2 = self::DATA_TABLE_NAME;
-                $sql = "SELECT COUNT(*) AS count FROM $t1 WHERE pages_id = {$page->id} AND fields_id = $fields_id";
-                $result = $this->db->query($sql);
-                $row = mysqli_fetch_assoc($result);
-                if ($row['count'] > $this->data_row_limit) {
-                    $limit = $row['count'] - $this->data_row_limit;
-                    $sql = "SELECT id FROM $t1 ORDER BY timestamp LIMIT $limit";
-                    $result = $this->db->query($sql);
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        $ids .= ($ids) ? ", " . $row['id'] : $row['id'];
-                    }
-                    $sql = "DELETE FROM $t1 WHERE id IN ($ids)";
-                    $this->db->query($sql);
-                    $sql = "DELETE FROM $t2 WHERE {$t1}_id IN ($ids)";
-                    $this->db->query($sql);
-                }
-            }
+            // enforce row limit setting
+            $this->removeExcessRows();
 
         }
         
