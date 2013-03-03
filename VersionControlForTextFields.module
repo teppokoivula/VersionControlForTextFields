@@ -296,7 +296,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                 $result = $this->db->query($sql);
                 $row = mysqli_fetch_assoc($result);
                 if ($row['count'] > $this->data_row_limit) {
-                    $limit = $row[0] - $this->data_row_limit;
+                    $limit = $row['count'] - $this->data_row_limit;
                     $sql = "SELECT id FROM $t1 ORDER BY timestamp LIMIT $limit";
                     $result = $this->db->query($sql);
                     while ($row = mysqli_fetch_assoc($result)) {
