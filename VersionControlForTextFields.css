@@ -57,3 +57,14 @@
     cursor: default;
     padding: 5px 4px;
 }
+
+.field-revisions-loading {
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: block;
+    position: absolute;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url('loading.gif');
+}

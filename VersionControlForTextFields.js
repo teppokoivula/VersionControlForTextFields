@@ -26,11 +26,16 @@ $(function() {
           $('.field-revisions a').bind('click', function() {
               if ($(this).hasClass('ui-state-active')) return false;
               var $this = $(this);
-              var field = $(this).attr('data-field');
+              var field = $this.attr('data-field');
               var revision = $this.attr('data-revision');
               $this.parents('li.Inputfield:first').find('.field-revisions .ui-state-active').removeClass('ui-state-active');
               $this.addClass('ui-state-active');
-              $this.parents('li.Inputfield:first').find('div.ui-widget-content').css('opacity', '0.25');
+              var $content = $this.parents('li.Inputfield:first').find('div.ui-widget-content');
+              var $loading = $('<span class="field-revisions-loading"></span>').hide().css({
+                  height: $content.innerHeight()+'px',
+                  backgroundColor: $content.css('background-color')
+              });
+              $content.css('position', 'relative').prepend($loading.fadeIn(250));
               $.get(if_url+'get', {id: revision}, function(json) {
                   $.each(json, function(property, data) {
                       var language = property.replace('data', '');
@@ -42,9 +47,9 @@ $(function() {
                       } else {
                           $this.parents('li.Inputfield:first').find('input[type=text]#Inputfield_'+field+language).val(data);
                       }
-                      $this.parents('li.Inputfield:first').find('div.ui-widget-content').animate({
-                          opacity: 1
-                      }, 500);
+                      $loading.fadeOut(350, function() {
+                          $(this).remove();
+                      });
                   });
               });
               return false;
