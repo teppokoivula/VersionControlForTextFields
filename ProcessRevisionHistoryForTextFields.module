@@ -97,6 +97,13 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $defaults = self::getDefaultData();
         $data = array_merge($defaults, $data);
 
+        // notice about additional config options
+        $field = $modules->get("InputfieldMarkup");
+        $link_module = "VersionControlForTextFields";
+        $link_markup = "<a href='".wire('page')->url."edit?name=$link_module'>$link_module.module</a>";
+        $field->set('markupText', sprintf(__("Note: you can find additional config options related to this module at %s."), $link_markup));
+        $fields->add($field);
+
         // date format used
         $field = $modules->get("InputfieldText");
         $field->name = "date_format";
