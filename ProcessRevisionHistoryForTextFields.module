@@ -107,8 +107,8 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         // date format used
         $field = $modules->get("InputfieldText");
         $field->name = "date_format";
-        $field->label = "Date Format";
-        $field->notes = "See the [PHP date](http://www.php.net/manual/en/function.date.php) function reference for more information on how to customize this format.";
+        $field->label = __("Date Format");
+        $field->notes = __("See the [PHP date](http://www.php.net/manual/en/function.date.php) function reference for more information on how to customize this format.");
         $field->value = ($data['date_format']) ? $data['date_format'] : $defaults['date_format'];
         $field->size = 70;
         $fields->add($field);
