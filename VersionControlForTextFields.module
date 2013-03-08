@@ -116,9 +116,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         // notice about additional config options
         $field = $modules->get("InputfieldMarkup");
+        $field->label = __("Additional config options");
         $link_module = "ProcessRevisionHistoryForTextFields";
         $link_markup = "<a href='".wire('page')->url."edit?name=$link_module'>$link_module.module</a>";
-        $field->set('markupText', sprintf(__("Note: you can find additional config options related to this module at %s."), $link_markup));
+        $field->set('markupText', sprintf(__("You can find additional config options related to this module at %s."), $link_markup));
         $fields->add($field);
 
         // for which templates should we track values?
