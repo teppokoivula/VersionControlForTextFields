@@ -414,8 +414,9 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             fields_id INT UNSIGNED NOT NULL,
             users_id INT UNSIGNED DEFAULT NULL,
             username VARCHAR(255) DEFAULT NULL,
-            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE = MYISAM;
+            timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY fields_id (fields_id)
+        ) ENGINE = MYISAM DEFAULT CHARSET=utf8;
         ";
         $this->db->query($sql);
 
@@ -430,8 +431,9 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             " . self::TABLE_NAME . "_id INT UNSIGNED NOT NULL,
             property VARCHAR(255) NOT NULL,
-            data MEDIUMTEXT DEFAULT NULL
-        ) ENGINE = MYISAM;
+            data MEDIUMTEXT DEFAULT NULL,
+            KEY " . self::TABLE_NAME . "_id (" . self::TABLE_NAME . "_id)
+        ) ENGINE = MYISAM DEFAULT CHARSET=utf8;
         ";
         $this->db->query($sql);
 

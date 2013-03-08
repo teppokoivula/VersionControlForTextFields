@@ -145,7 +145,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         FROM fields AS f, " . self::TABLE_NAME . " AS m, " . self::DATA_TABLE_NAME . " AS d
         WHERE m.pages_id = $pages_id AND d." . self::TABLE_NAME . "_id = m.id AND f.id = m.fields_id
         GROUP BY m.id
-        ORDER BY f.name, d.id DESC
+        ORDER BY f.id, d.id DESC
         ";
         $result = $this->db->query($sql);
 
