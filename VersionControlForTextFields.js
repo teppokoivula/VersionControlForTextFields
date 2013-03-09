@@ -37,7 +37,7 @@ $(function() {
         $('.field-revisions a').bind('click', function() {
             if ($(this).hasClass('ui-state-active')) return false;
             var $this = $(this);
-            var field = $this.attr('data-field');
+            var field = $this.parents('.field-revisions:first').attr('data-field');
             var revision = $this.attr('data-revision');
             $this.parents('li.Inputfield:first').find('.field-revisions .ui-state-active').removeClass('ui-state-active');
             $this.addClass('ui-state-active');

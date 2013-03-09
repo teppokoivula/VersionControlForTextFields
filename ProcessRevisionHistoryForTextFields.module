@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 95,
+            'version' => 96,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -172,7 +172,6 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
                 $field = $name;
             }
             $markup .= "<li><a"
-                     . " data-field='$name'"
                      . " data-revision='$revision'"
                      . " data-date='$date'"
                      . " href='#'>"
