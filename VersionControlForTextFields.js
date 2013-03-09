@@ -54,6 +54,9 @@ $(function() {
                     if (tinyMCE && tinyMCE.get('Inputfield_'+field+language)) {
                         // TinyMCE inputfield
                         tinyMCE.get('Inputfield_'+field+language).setContent(data);
+                    } else if (CKEDITOR && CKEDITOR.instances['Inputfield_'+field+language]) {
+                        // CKEditor inputfield
+                        CKEDITOR.instances['Inputfield_'+field+language].setData(data);
                     } else if ($this.parents('li.Inputfield:first').find('textarea').length) {
                         // Textarea inputfield (or any inputfield using a
                         // <textarea> HTML element)
