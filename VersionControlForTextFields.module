@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 100,
+            'version' => 101,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -301,7 +301,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         if ($page->isChanged()) {
             foreach ($page->template->fields as $field) {
-                if ($page->isChanged($field) && in_array($field->id, $this->enabled_fields)) {
+                if ($page->isChanged($field->name) && in_array($field->id, $this->enabled_fields)) {
                     if (!isset($this->page_data[$page->id])) $this->page_data[$page->id] = array();
                     // using array to store field data isn't really necessary at the moment,
                     // but it's not harmful either and could make it easier to support more
