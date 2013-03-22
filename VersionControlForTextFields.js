@@ -51,7 +51,7 @@ $(function() {
                 $.each(json, function(property, data) {
                     var language = property.replace('data', '');
                     if (language) language = "__"+language;
-                    if (tinyMCE && tinyMCE.get('Inputfield_'+field+language)) {
+                    if (typeof tinyMCE != "undefined" && tinyMCE.get('Inputfield_'+field+language)) {
                         // TinyMCE inputfield
                         tinyMCE.get('Inputfield_'+field+language).setContent(data);
                     } else if (typeof CKEDITOR != "undefined" && CKEDITOR.instances['Inputfield_'+field+language]) {
