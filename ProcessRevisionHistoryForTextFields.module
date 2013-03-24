@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 101,
+            'version' => 102,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -136,6 +136,9 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $defaults = self::getDefaultData();
         $date_format = ($this->date_format != $defaults['date_format']) ? $this->date_format : null;
 
+        // additional settings
+        $settings = $this->input->get->settings;
+
         // get pages id
         $pages_id = (isset($this->input->get->pages_id)) ? (int) $this->input->get->pages_id : null;
         if (!$pages_id) throw new WireException("Missing required GET param pages_id");
@@ -170,6 +173,18 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             $field_name = wire('sanitizer')->fieldName($row['field_name']);
             if (!isset($data[$field_name])) $data[$field_name] = array();
             $data[$field_name][] = $item;
+        }
+
+        // add empty containers for fields with no data?
+        if (isset($settings['empty']) && $settings['empty']) {
+            $page = $this->pages->get($pages_id);
+            $fields = $page->template->versionControlFields;
+            $fields_with_data = array_keys($data);
+            foreach ($fields as $field) {
+                if (!in_array($field->name, $fields_with_data)) {
+                    $data[$field->name] = array();
+                }
+            }
         }
 
         // output HTML markup
@@ -222,16 +237,20 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $markup = "";
         foreach ($data as $field => $field_data) {
             $markup .= "<div class='field-revisions' data-field='$field'>";
-            $markup .= "<ul class='ui-widget-content'>";
-            foreach ($field_data as $row) {
-                $markup .= "<li><a"
-                         . " data-revision='{$row['revision']}'"
-                         . " data-date='{$row['date']}'"
-                         . " href='#'>"
-                         . "<span>{$row['date']}</span> <em>{$row['username']}</em>"
-                         . "</a></li>";
+            if (count($field_data)) {
+                $markup .= "<ul class='ui-widget-content'>";
+                foreach ($field_data as $row) {
+                    $markup .= "<li><a"
+                             . " data-revision='{$row['revision']}'"
+                             . " data-date='{$row['date']}'"
+                             . " href='#'>"
+                             . "<span>{$row['date']}</span> <em>{$row['username']}</em>"
+                             . "</a></li>";
+                }
+                $markup .= "</ul>";
+            } else {
+                $markup .= htmlspecialchars(__("There are no earlier versions of this field available"));
             }
-            $markup .= "</ul>";
             $markup .= "</div>";
         }
 

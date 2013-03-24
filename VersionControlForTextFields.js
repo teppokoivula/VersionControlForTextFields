@@ -1,11 +1,12 @@
 $(function() {
 
-    // variables; ID of current page and URL for revisions interface (page)
+    // variables; current page ID, revisions interface URL, additional settings
     var pages_id = $('#PageIDIndicator').text();
     var if_url = config.urls.admin+'setup/revision-history-for-text-fields/';
+    var settings = { empty: true };
 
     // fetch revision data for this page as HTML markup
-    $.get(if_url, {pages_id: pages_id}, function(data) {
+    $.get(if_url, { pages_id: pages_id, settings: settings }, function(data) {
         
         // prepend data (#text-field-history) to body
         $('body').prepend(data);
@@ -14,7 +15,6 @@ $(function() {
         // contents to that fields header (.ui-widget-header) only if they
         // contain at least one revision other than what's currently used
         $('#text-field-history > div').each(function() {
-            if ($(this).find('li').length < 2) return;
             $('.ui-widget-header[for=Inputfield_'+$(this).attr('data-field')+']')
                 .addClass('with-history')
                 .after($(this));
@@ -23,11 +23,17 @@ $(function() {
         
         // iterate through history-enabled fields to add a revision toggle
         $('.ui-widget-header.with-history').each(function() {
-            var $revisions_toggle = '<a class="field-revisions-toggle"><span class="ui-icon ui-icon-clock"></span></a>';
+            var toggle_class = "field-revisions-toggle";
+            var toggle_title = "";
+            if ($(this).next('.field-revisions').find('li').length < 1) {
+                toggle_class += " inactive";
+                toggle_title = " title='"+$(this).next('.field-revisions').text()+"'";
+            }
+            var revisions_toggle = '<a '+toggle_title+'class="'+toggle_class+'"><span class="ui-icon ui-icon-clock"></span></a>';
             if ($(this).find('.ui-icon').length) {
-                $(this).find('.ui-icon').after($revisions_toggle);
+                $(this).find('.ui-icon').after(revisions_toggle);
             } else {
-                $(this).prepend($revisions_toggle);
+                $(this).prepend(revisions_toggle);
             }
         });
         
@@ -78,6 +84,7 @@ $(function() {
         // to make it accessible for touch devices etc.) show (or hide if it 
         // was already visible) revision list
         $('.field-revisions-toggle').bind('click mouseenter', function() {
+            if ($(this).hasClass('inactive')) return false;
             $revisions = $(this).parent('label').siblings('.field-revisions');
             var show = ($revisions.is(':visible')) ? false : true;
             $('.field-revisions').slideUp();

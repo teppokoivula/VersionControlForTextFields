@@ -6,6 +6,11 @@
     position: relative;
 }
 
+.field-revisions-toggle.inactive * {
+    cursor: help;
+    opacity: 0.25;
+}
+
 .field-revisions {
     padding: 36px 0 0 0 !important;
     position: absolute;

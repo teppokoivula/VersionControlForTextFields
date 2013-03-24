@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 103,
+            'version' => 104,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -229,6 +229,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             $this->pages->addHookAfter('save', $this, 'insert'); 
             // add hook that injects additional scripts and/or styles
             $this->addHookAfter('ProcessController::execute', $this, 'inject');
+            // add new property versionControlFields to Template object
+            $this->addHookProperty('Template::versionControlFields', $this, 'versionControlFields');
         }
 
     }
@@ -396,6 +398,27 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 		$version = (int) $info['version']; 
 		if (is_file($this->config->paths->$class . "$class.css")) $this->config->styles->add($this->config->urls->$class . "$class.css?v=$version"); 
 		if (is_file($this->config->paths->$class . "$class.js")) $this->config->scripts->add($this->config->urls->$class . "$class.js?v=$version"); 
+
+    }
+
+    /**
+     * Find out which fields belonging to current template have version
+     * control enabled. Added as a new property "versionControlFields"
+     * to Template object.
+     *
+     * @param HookEvent $event
+     */
+    public function versionControlFields(HookEvent $event) {
+
+        $fields = new Fieldgroup();
+        $template = $event->object;
+        foreach ($this->enabled_fields as $field) {
+            if ($template->hasField($field)) {
+                $fields->add($this->fields->get($field));
+            }
+        }
+
+        $event->return = $fields;
 
     }
 
