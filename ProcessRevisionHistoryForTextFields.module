@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 102,
+            'version' => 110,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -187,8 +187,16 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             }
         }
 
-        // output HTML markup
-        $out = $this->renderHTML($data);
+        // render method
+        $render = "renderHTML";
+        if (isset($settings['render']) && $settings['render'] != $render) {
+            if (method_exists($this, "render".$settings['render'])) {
+                $render = "render".$settings['render'];
+            }
+        }
+        
+        // exit with output
+        $out = $this->$render($data);
         exit($out);
 
     }    
@@ -220,8 +228,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         }
 
         // output JSON
-        header('Content-type: application/json');
-        $out = json_encode($data);
+        $out = $this->renderJSON($data);
         exit($out);
 
     }
@@ -258,6 +265,16 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
 
         return $markup;
 
+    }
+
+    /**
+     * Render JSON based on input array
+     *
+     * @return string $json
+     */
+    protected function renderJSON(array $data) {
+        header('Content-type: application/json');
+        return json_encode($data);
     }
 
     /**
