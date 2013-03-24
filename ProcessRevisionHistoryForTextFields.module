@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 100,
+            'version' => 101,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -150,40 +150,31 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         ";
         $result = $this->db->query($sql);
 
-        // generate markup
-        $field = "";
-        $markup = "";
+        // parse data
+        $data = array();
         while ($row = mysqli_fetch_assoc($result)) {
-            if ($row['users_id']) {
-                $users_id = (int) $row['users_id'];
-                if ($user = $this->users->get($users_id)) {
-                    $username = $user->name;
-                } else {
-                    $username = wire('sanitizer')->name($row['username']);
-                }
+            $item = array(
+                'users_id' => null,
+                'username' => isset($row['username']) ? $this->sanitizer->name($row['username']) : null,
+                'revision' => isset($row[self::TABLE_NAME.'_id']) ? $row[self::TABLE_NAME.'_id'] : null,
+                'date' => isset($row['timestamp']) ? $row['timestamp'] : null,
+                'data' => isset($row['data']) ? $row['data'] : null
+            );
+            if (isset($row['users_id']) && $user = $this->users->get((int) $row['users_id'])) {
+                $item['users_id'] = $user->id;
+                $item['username'] = $user->name;
             }
-            $name = $row['field_name'];
-            $data = $row['data'];
-            $revision = $row[self::TABLE_NAME . '_id'];
-            $date = ($date_format) ? date($date_format, strtotime($row['timestamp'])) : $row['timestamp'];
-            if ($name != $field) {
-                if ($field) $markup .= "</ul></div>";
-                $markup .= "<div class='field-revisions' data-field='$name'><ul class='ui-widget-content'>";
-                $field = $name;
+            if ($date_format && $item['date']) {
+                $item['date'] = date($date_format, strtotime($item['date']));
             }
-            $markup .= "<li><a"
-                     . " data-revision='$revision'"
-                     . " data-date='$date'"
-                     . " href='#'>"
-                     . "<span>$date</span> <em>$username</em>"
-                     . "</a></li>";
+            $field_name = wire('sanitizer')->fieldName($row['field_name']);
+            if (!isset($data[$field_name])) $data[$field_name] = array();
+            $data[$field_name][] = $item;
         }
-        $markup .= "</ul></div>";
 
-        // wrap generated markup with container div
-        $markup = "<div id='text-field-history'>$markup</div>";
-
-        exit($markup);
+        // output HTML markup
+        $out = $this->renderHTML($data);
+        exit($out);
 
     }    
 
@@ -213,10 +204,40 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             }
         }
 
-        // return JSON
+        // output JSON
         header('Content-type: application/json');
-        echo json_encode($data);
-        exit();
+        $out = json_encode($data);
+        exit($out);
+
+    }
+
+    /**
+     * Render HTML markup based on input array
+     *
+     * @param array $data
+     * @return string|null
+     */
+    protected function renderHTML(array $data) {
+
+        $markup = "";
+        foreach ($data as $field => $field_data) {
+            $markup .= "<div class='field-revisions' data-field='$field'>";
+            $markup .= "<ul class='ui-widget-content'>";
+            foreach ($field_data as $row) {
+                $markup .= "<li><a"
+                         . " data-revision='{$row['revision']}'"
+                         . " data-date='{$row['date']}'"
+                         . " href='#'>"
+                         . "<span>{$row['date']}</span> <em>{$row['username']}</em>"
+                         . "</a></li>";
+            }
+            $markup .= "</ul>";
+            $markup .= "</div>";
+        }
+
+        $markup = "<div id='text-field-history'>$markup</div>";
+
+        return $markup;
 
     }
 
