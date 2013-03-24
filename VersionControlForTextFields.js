@@ -3,7 +3,7 @@ $(function() {
     // variables; current page ID, revisions interface URL, additional settings
     var pages_id = $('#PageIDIndicator').text();
     var if_url = config.urls.admin+'setup/revision-history-for-text-fields/';
-    var settings = { empty: true };
+    var settings = { empty: true, render: 'HTML' };
 
     // fetch revision data for this page as HTML markup
     $.get(if_url, { pages_id: pages_id, settings: settings }, function(data) {
