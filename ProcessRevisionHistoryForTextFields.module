@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 110,
+            'version' => 111,
             'singular' => true,
             'autoload' => false,
             'requires' => 'VersionControlForTextFields'
@@ -213,9 +213,9 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
 
         // find values
         $sql = "
-        SELECT d.*
-        FROM " . self::DATA_TABLE_NAME . " AS d
-        WHERE d." . self::TABLE_NAME . "_id = $id
+        SELECT m.fields_id, m.pages_id, d.*
+        FROM " . self::TABLE_NAME . " AS m, " . self::DATA_TABLE_NAME . " AS d
+        WHERE d." . self::TABLE_NAME . "_id = $id AND m.id = $id
         ";
         $result = $this->db->query($sql);
 
@@ -223,6 +223,13 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $data = array();
         if ($result->num_rows) {
             while ($row = mysqli_fetch_assoc($result)) {
+                $field = $this->fields->get($row['fields_id']);
+                if ($field->type == "FieldtypeDatetime") {
+                    $page = $this->pages->get($row['pages_id']);
+                    $input = $field->getInputfield($page);
+                    $format = "$input->dateInputFormat $input->timeInputFormat";
+                    $row['data'] = date($format, $row['data']);
+                }
                 $data[$row['property']] = $row['data'];
             }
         }

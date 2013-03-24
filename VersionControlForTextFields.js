@@ -43,17 +43,22 @@ $(function() {
         $('.field-revisions a').bind('click', function() {
             if ($(this).hasClass('ui-state-active')) return false;
             var $this = $(this);
+            var $if = $this.parents('.Inputfield:first');
             var field = $this.parents('.field-revisions:first').attr('data-field');
-            var revision = $this.attr('data-revision');
-            $this.parents('li.Inputfield:first').find('.field-revisions .ui-state-active').removeClass('ui-state-active');
+            $if.find('.field-revisions .ui-state-active').removeClass('ui-state-active');
             $this.addClass('ui-state-active');
-            var $content = $this.parents('li.Inputfield:first').find('div.ui-widget-content');
+            var $content = $if.find('div.ui-widget-content');
             var $loading = $('<span class="field-revisions-loading"></span>').hide().css({
                 height: $content.innerHeight()+'px',
                 backgroundColor: $content.css('background-color')
             });
+            if ($if.hasClass('InputfieldDatetime')) {
+                // datetime inputfield has <p> tag around it from which we must
+                // remove margin-top here to to avoid odd (Webkit) CSS quirk
+                $content.find('input:first').parent('p').css('margin-top', 0);
+            }
             $content.css('position', 'relative').prepend($loading.fadeIn(250));
-            $.get(if_url+'get', {id: revision}, function(json) {
+            $.get(if_url+'get', {id: $this.attr('data-revision')}, function(json) {
                 $.each(json, function(property, data) {
                     var language = property.replace('data', '');
                     if (language) language = "__"+language;
@@ -63,14 +68,16 @@ $(function() {
                     } else if (typeof CKEDITOR != "undefined" && CKEDITOR.instances['Inputfield_'+field+language]) {
                         // CKEditor inputfield
                         CKEDITOR.instances['Inputfield_'+field+language].setData(data);
-                    } else if ($this.parents('li.Inputfield:first').find('textarea').length) {
+                    } else if ($if.find('textarea').length) {
                         // Textarea inputfield (or any other inputfield using
                         // <textarea> HTML element)
-                        $this.parents('li.Inputfield:first').find('textarea[name='+field+language+']').html(data);
+                        $if.find('textarea[name='+field+language+']').html(data);
                     } else {
                         // Text inputfield (or any other inputfield using
                         // <input> HTML element)
-                        $this.parents('li.Inputfield:first').find('input[name='+field+language+']').val(data);
+                        $input = $if.find('input[name='+field+language+']');
+                        if ($input.hasClass('hasDatepicker')) $input.datepicker("setDate", new Date(data));
+                        else $input.val(data);
                     }
                     $loading.fadeOut(350, function() {
                         $(this).remove();

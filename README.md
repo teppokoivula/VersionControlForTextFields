@@ -19,6 +19,7 @@ the field to that specific revision.
 Currently supported fieldtypes include these:
 
   * Email
+  * Datetime
   * Text (regular and multi-language)
   * Textarea (regular and multi-language)
   * Page Title (regular and multi-language)
