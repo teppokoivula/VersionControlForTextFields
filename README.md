@@ -32,8 +32,8 @@ Following inputfields are supported:
 
   * TinyMCE
   * CKEditor
-  * Text (+ other inputfields using <input> HTML element, such as Email)
-  * Textarea (+ other inputfields using regular <textarea> HTML element)
+  * Text (+ other inputfields using `<input>` HTML element, such as Email)
+  * Textarea (+ other inputfields using regular `<textarea>` HTML element)
 
 ## Getting started
 
