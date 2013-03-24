@@ -15,7 +15,7 @@ $(function() {
         // contents to that fields header (.ui-widget-header) only if they
         // contain at least one revision other than what's currently used
         $('#text-field-history > div').each(function() {
-            $('.ui-widget-header[for=Inputfield_'+$(this).attr('data-field')+']')
+            $('.Inputfield_'+$(this).attr('data-field')+' > label')
                 .addClass('with-history')
                 .after($(this));
             $(this).find('a:first').addClass('ui-state-active');
@@ -64,13 +64,13 @@ $(function() {
                         // CKEditor inputfield
                         CKEDITOR.instances['Inputfield_'+field+language].setData(data);
                     } else if ($this.parents('li.Inputfield:first').find('textarea').length) {
-                        // Textarea inputfield (or any inputfield using a
+                        // Textarea inputfield (or any other inputfield using
                         // <textarea> HTML element)
-                        $this.parents('li.Inputfield:first').find('textarea#Inputfield_'+field+language).html(data);
+                        $this.parents('li.Inputfield:first').find('textarea[name='+field+language+']').html(data);
                     } else {
-                        // Text inputfield (or any other inputfield using a
-                        // <input> HTML element with type set to text)
-                        $this.parents('li.Inputfield:first').find('input[type=text]#Inputfield_'+field+language).val(data);
+                        // Text inputfield (or any other inputfield using
+                        // <input> HTML element)
+                        $this.parents('li.Inputfield:first').find('input[name='+field+language+']').val(data);
                     }
                     $loading.fadeOut(350, function() {
                         $(this).remove();

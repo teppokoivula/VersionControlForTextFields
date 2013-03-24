@@ -18,6 +18,7 @@ the field to that specific revision.
 
 Currently supported fieldtypes include these:
 
+  * Email
   * Text (regular and multi-language)
   * Textarea (regular and multi-language)
   * Page Title (regular and multi-language)
@@ -31,7 +32,7 @@ Following inputfields are supported:
 
   * TinyMCE
   * CKEditor
-  * Text (+ other inputfields using <input> HTML element with type "text")
+  * Text (+ other inputfields using <input> HTML element, such as Email)
   * Textarea (+ other inputfields using regular <textarea> HTML element)
 
 ## Getting started
