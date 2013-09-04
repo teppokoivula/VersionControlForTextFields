@@ -55,6 +55,8 @@ $(function() {
             if ($if.hasClass('InputfieldDatetime')) {
                 // datetime inputfield has <p> tag around it from which we must
                 // remove margin-top here to to avoid odd (Webkit) CSS quirk
+                // (ProcessWire commit 2298dc0035751ad940cac48fd2a1129585c9581f
+                // removes said tag, but older versions still need this fix)
                 $content.find('input:first').parent('p').css('margin-top', 0);
             }
             $content.css('position', 'relative').prepend($loading.fadeIn(250));
