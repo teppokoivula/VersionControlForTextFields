@@ -32,9 +32,10 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 111,
+            'version' => 112,
             'singular' => true,
             'autoload' => false,
+            'permission' => 'version-control',
             'requires' => 'VersionControlForTextFields'
         ); 
     }
@@ -315,6 +316,16 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         // tell user that we've created a new page
         $this->message("Created Page: {$page->path}"); 
 
+        // create version-control permission
+        $permission = $this->permissions->get("version-control");
+        if (!$permission->id) {
+            $permission = new Permission();
+            $permission->name = "version-control";
+            $permission->title = $this->_("Access version control");
+            $permission->save();
+            $this->message("Created Permission: {$permission->name}");
+        }
+
     }
 
     /**
@@ -334,6 +345,13 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             // if we found the page, let the user know and delete it
             $this->message("Deleting Page: {$page->path}"); 
             $page->delete();
+        }
+
+        // delete version-control permission
+        $permission = $this->permissions->get("version-control");
+        if ($permission->id) {
+            $this->message("Deleting Permission: {$permission->name}");
+            $permission->delete();
         }
 
     }
