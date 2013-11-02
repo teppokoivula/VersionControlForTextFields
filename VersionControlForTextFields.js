@@ -17,17 +17,17 @@ $(function() {
         $('#text-field-history > div').each(function() {
             $('.Inputfield_'+$(this).attr('data-field')+' > label')
                 .addClass('with-history')
-                .after($(this));
+                .before($(this)); 
             $(this).find('a:first').addClass('ui-state-active');
         });
         
         // iterate through history-enabled fields to add a revision toggle
-        $('.ui-widget-header.with-history').each(function() {
+        $('.ui-widget-header.with-history, .InputfieldHeader.with-history').each(function() {
             var toggle_class = "field-revisions-toggle";
             var toggle_title = "";
-            if ($(this).next('.field-revisions').find('li').length < 1) {
+            if ($(this).siblings('.field-revisions').find('li').length < 1) {
                 toggle_class += " inactive";
-                toggle_title = " title='"+$(this).next('.field-revisions').text()+"'";
+                toggle_title = " title='"+$(this).siblings('.field-revisions').text()+"'";
             }
             var revisions_toggle = '<a '+toggle_title+'class="'+toggle_class+'"><span class="ui-icon ui-icon-clock"></span></a>';
             if ($(this).find('.ui-icon').length) {
@@ -47,7 +47,7 @@ $(function() {
             var field = $this.parents('.field-revisions:first').attr('data-field');
             $if.find('.field-revisions .ui-state-active').removeClass('ui-state-active');
             $this.addClass('ui-state-active');
-            var $content = $if.find('div.ui-widget-content');
+            var $content = $if.find('div.ui-widget-content, .InputfieldContent');
             var $loading = $('<span class="field-revisions-loading"></span>').hide().css({
                 height: $content.innerHeight()+'px',
                 backgroundColor: $content.css('background-color')
