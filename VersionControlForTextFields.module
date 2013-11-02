@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 108,
+            'version' => 109,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'

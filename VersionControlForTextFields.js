@@ -67,6 +67,9 @@ $(function() {
                     if (typeof tinyMCE != "undefined" && tinyMCE.get('Inputfield_'+field+language)) {
                         // TinyMCE inputfield
                         tinyMCE.get('Inputfield_'+field+language).setContent(data);
+                    } else if ($if.find('.InputfieldCKEditorInline').length) {
+                        // CKeditor inputfield in inline mode
+                        $if.find('.InputfieldCKEditorInline').html(data);
                     } else if (typeof CKEDITOR != "undefined" && CKEDITOR.instances['Inputfield_'+field+language]) {
                         // CKEditor inputfield
                         CKEDITOR.instances['Inputfield_'+field+language].setData(data);
