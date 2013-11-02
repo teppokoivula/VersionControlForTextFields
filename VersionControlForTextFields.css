@@ -35,7 +35,6 @@
 }
 
 .field-revisions a {
-    float: left;
     margin: 0 5px;
     padding: 5px 4px;
     white-space: nowrap;
@@ -44,12 +43,7 @@
     text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 
-.field-revisions a span {
-    float: left;
-}
-
 .field-revisions a em {
-    float: right;
     padding-left: 2em;
 }
 

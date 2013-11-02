@@ -101,22 +101,25 @@ $(function() {
             return false;
         });
 
-        // find out max-height given to revision lists at CSS file (this way
-        // it's possible to change it's value at CSS level without having to
-        // change any JavaScript code here..)
-        var list_max_height = parseInt($('.field-revisions:first > ul').css('max-height'));
+        // hide revision list when user moves mouse cursor off it
+        $('.field-revisions').bind('mouseleave', function() {
+            $(this).slideUp();
+        });
 
-        $('.field-revisions')
-            .bind('mouseleave', function() {
-                // hide revision list when user moves mouse cursor off it
-                $(this).slideUp();
-            })
-            .each(function() {
-                if ($(this).height() > list_max_height) {
-                    // extra padding to compensate for vertical scrollbar
-                    $(this).children().css('padding-right', '26px');
-                }
-            });
+        // if <ul> element containing revision history is long enough to get
+        // vertical scrollbar, add some extra padding to compensate for it
+        $('.field-revisions > ul').each(function() {
+            // fetch DOM object matching current jQuery object (jQuery object
+            // doesn't have clientHeight or scrollHeight which we need here)
+            var dom_ul = $(this)[0];
+            // to get correct heights parent element needs to be visible (this
+            // should happen so fast that user never notices anything strange)
+            $(this).parent().show();
+            if (dom_ul.clientHeight < dom_ul.scrollHeight) {
+                $(this).css('padding-right', '26px');
+            }
+            $(this).parent().hide();
+        });
         
     });
     
