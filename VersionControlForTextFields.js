@@ -106,6 +106,7 @@ $(function() {
 
         // hide revision list when user moves mouse cursor off it
         $('.field-revisions').bind('mouseleave', function() {
+            $('.compare-revisions').remove();
             $(this).slideUp();
         });
 
@@ -119,9 +120,44 @@ $(function() {
             // should happen so fast that user never notices anything strange)
             $(this).parent().show();
             if (dom_ul.clientHeight < dom_ul.scrollHeight) {
-                $(this).css('padding-right', '26px');
+                $(this).addClass('scroll');
             }
             $(this).parent().hide();
+        });
+
+        // when mouse cursor is moved on a revision link, show compare/diff
+        // link, which -- when clicked -- loads a text diff for displaying
+        // differences between selected revision and current revision.
+        $('.field-revisions li > a').bind('hover', function() {
+            $('.compare-revisions').remove();
+            if (!$(this).hasClass('ui-state-active')) {
+                // in this case r1 refers to current revision, r2 to selected
+                // revision. diff is fetched as HTML from revision interface.
+                var r1 = $(this).parents('.field-revisions:first').find('.ui-state-active').attr('data-revision');
+                var r2 = $(this).attr('data-revision');
+                var href = if_url+'diff/?revisions='+r1+':'+r2;
+                // @todo: add support for translatable label text
+                var label = "Compare with current";
+                $(this).before('<div class="compare-revisions"><a class="diff-trigger" href="'+href+'">'+label+'</a></div>');
+                $('.compare-revisions > a').bind('click', function() {
+                    var $parent = $(this).parent();
+                    var $loading = $('<span class="field-revisions-loading"></span>').hide().css({
+                        height: $parent.innerHeight()+'px',
+                        backgroundColor: $parent.css('background-color')
+                    });
+                    $parent.prepend($loading.fadeIn(250)).load($(this).attr('href'), function() {
+                        $(this).find('a.diff-trigger').remove();
+                        $(this).animate({
+                            width: '400px',
+                            padding: '14px'
+                        });
+                        $loading.fadeOut(350, function() {
+                            $(this).remove();
+                        });
+                    });
+                    return false;
+                });
+            }
         });
         
     });
