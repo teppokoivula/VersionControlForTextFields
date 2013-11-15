@@ -38,7 +38,7 @@ $(function() {
         });
         
         // when a link in revision list is clicked, fetch data for appropriate
-        // revision from the interface (most of the code here is realted to how
+        // revision from the interface (most of the code here is related to how
         // things are presented, loading animation etc.)
         $('.field-revisions a').bind('click', function() {
             if ($(this).hasClass('ui-state-active')) return false;
@@ -80,7 +80,7 @@ $(function() {
                     } else {
                         // Text inputfield (or any other inputfield using
                         // <input> HTML element)
-                        $input = $if.find('input[name='+field+language+']');
+                        var $input = $if.find('input[name='+field+language+']');
                         if ($input.hasClass('hasDatepicker')) $input.datepicker("setDate", new Date(data));
                         else $input.val(data);
                     }
@@ -97,17 +97,31 @@ $(function() {
         // was already visible) revision list
         $('.field-revisions-toggle').bind('click mouseenter', function() {
             if ($(this).hasClass('inactive')) return false;
-            $revisions = $(this).parent('label').siblings('.field-revisions');
+            var $revisions = $(this).parent('label').siblings('.field-revisions');
             var show = ($revisions.is(':visible')) ? false : true;
             $('.field-revisions').slideUp();
             if (show) $revisions.slideDown();
             return false;
         });
 
-        // hide revision list when user moves mouse cursor off it
-        $('.field-revisions').bind('mouseleave', function() {
-            $('.compare-revisions').remove();
-            $(this).slideUp();
+        // hide revision list when user moves mouse cursor off it; timeout
+        // and sticky class are fixes to an issue where moving cursor over
+        // absolutely positioned .compare-revisions within parent element
+        // (.field-revisions) triggered mouseleave event of parent itself
+        var revision_timeout;
+        $('.field-revisions').hover(function() {
+        	if (revision_timeout) {
+        		clearTimeout(revision_timeout);
+        		revision_timeout = false;
+        	}
+        }, function() {
+        	var $this = $(this);
+        	revision_timeout = setTimeout(function() {
+        		if (!$this.hasClass('sticky')) {
+        			$('.compare-revisions').remove();
+        			$this.slideUp();
+        		}
+        	}, 100);
         });
 
         // if <ul> element containing revision history is long enough to get
@@ -139,6 +153,15 @@ $(function() {
                 // @todo: add support for translatable label text
                 var label = "Compare with current";
                 $(this).before('<div class="compare-revisions"><a class="diff-trigger" href="'+href+'">'+label+'</a></div>');
+                // note: following (and some other actions in this file) could
+                // be achieved more efficiently with .on(), but since that was
+                // introduced in jQuery 1.7 and ProcessWire 2.2 only had 1.6.2
+                // that's not really an option quite yet.
+                $('.compare-revisions').hover(function() {
+                	$(this).parents('.field-revisions:first').addClass('sticky');
+                }, function() {
+                	$(this).parents('.field-revisions:first').removeClass('sticky');
+                })
                 $('.compare-revisions > a').bind('click', function() {
                     var $parent = $(this).parent();
                     var $loading = $('<span class="field-revisions-loading"></span>').hide().css({
