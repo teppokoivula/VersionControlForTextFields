@@ -150,8 +150,7 @@ $(function() {
                 var r1 = $(this).parents('.field-revisions:first').find('.ui-state-active').attr('data-revision');
                 var r2 = $(this).attr('data-revision');
                 var href = if_url+'diff/?revisions='+r1+':'+r2;
-                // @todo: add support for translatable label text
-                var label = "Compare with current";
+                var label = $('#version-control-translations span[data-term=compare_with_current]').text();
                 $(this).before('<div class="compare-revisions"><a class="diff-trigger" href="'+href+'">'+label+'</a></div>');
                 // note: following (and some other actions in this file) could
                 // be achieved more efficiently with .on(), but since that was
