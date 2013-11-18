@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 120,
+            'version' => 121,
             'singular' => true,
             'autoload' => false,
             'permission' => 'version-control',
@@ -237,7 +237,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         <div id='diff'></div>
         <style type='text/css'>
         .revision {
-            display: none;
+            display: none !important;
         }
         ins {
             background-color: #c6ffc6;
