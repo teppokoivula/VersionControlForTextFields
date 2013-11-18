@@ -32,7 +32,7 @@ but isn't included here, please inform the author of this module via GitHub.
 Following inputfields are supported:
 
   * TinyMCE
-  * CKEditor
+  * CKEditor (regular and inline mode)
   * Text (+ other inputfields using `<input>` HTML element, such as Email)
   * Textarea (+ other inputfields using regular `<textarea>` HTML element)
 
