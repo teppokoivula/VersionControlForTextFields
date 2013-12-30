@@ -2,6 +2,7 @@ Version Control For Text Fields
 ===============================
 
 Simplified version control for text type fields in ProcessWire CMS/CMF.
+Copyright (c) 2013 Teppo Koivula
 
 This module uses hooks provided by ProcessWire to catch page edits, finds out
 which fields were changed and if text fields (see list of currently supported
@@ -49,3 +50,21 @@ this module is switched on for) can be found from Admin > Modules > Version
 Control For Text Fields (module config.) Minor settings can also be found from
 related Process modules config: Admin > Modules > Revision History For Text
 Fields.
+
+## License
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+(See included LICENSE file for full license text.)
