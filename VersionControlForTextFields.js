@@ -77,11 +77,18 @@ $(function() {
                         // Textarea inputfield (or any other inputfield using
                         // <textarea> HTML element)
                         $if.find('textarea[name='+field+language+']').html(data);
+                    } else if ($if.hasClass('InputfieldPage')) {
+                        // Page inputfield
+                        var settings = { render: 'Input' };
+                        $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(html) {
+                            $if.find('> .InputfieldContent').html(html);
+                        });
                     } else {
                         // Text inputfield (or any other inputfield using
                         // <input> HTML element)
                         var $input = $if.find('input[name='+field+language+']');
                         if ($input.hasClass('hasDatepicker')) $input.datepicker("setDate", new Date(data));
+                        else if ($if.hasClass('InputfieldCheckbox')) $input.prop("checked", data == $input.val() ? true : false);
                         else $input.val(data);
                     }
                     $loading.fadeOut(350, function() {

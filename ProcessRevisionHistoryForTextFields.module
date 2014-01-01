@@ -32,7 +32,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             'summary' => 'Provides data for Version Control For Text Fields module',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 121,
+            'version' => 122,
             'singular' => true,
             'autoload' => false,
             'permission' => 'version-control',
@@ -287,6 +287,9 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $id = (isset($this->input->get->id)) ? (int) $this->input->get->id : null;
         if (!$id) throw new WireException("Missing required GET param id");
 
+        // additional settings
+        $settings = $this->input->get->settings;
+
         // find values
         $sql = "
         SELECT m.fields_id, m.pages_id, d.*
@@ -296,12 +299,14 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $result = $this->db->query($sql);
 
         // generate data (associative array)
+        $page = null;
+        $field = null;
         $data = array();
         if ($result->num_rows) {
             while ($row = mysqli_fetch_assoc($result)) {
-                $field = $this->fields->get($row['fields_id']);
+                if (!$page) $page = $this->pages->get($row['pages_id']);
+                if (!$field) $field = $this->fields->get($row['fields_id']);
                 if ($field->type == "FieldtypeDatetime") {
-                    $page = $this->pages->get($row['pages_id']);
                     $input = $field->getInputfield($page);
                     $format = "$input->dateInputFormat $input->timeInputFormat";
                     $row['data'] = date($format, $row['data']);
@@ -310,10 +315,15 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
             }
         }
 
-        // output JSON
-        $out = $this->renderJSON($data);
-        exit($out);
-
+        // choose render method and exit with output
+        if (isset($settings['render']) && $settings['render'] == "Input") {
+            $input = $field->getInputfield($page);
+            $input->value = $data['data'];
+            exit($input->render());
+        } else {
+            exit($this->renderJSON($data));
+        }
+        
     }
 
     /**
