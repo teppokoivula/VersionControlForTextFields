@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 114,
+            'version' => 115,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -229,6 +229,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             // add hooks that gather information and trigger insert
             $this->pages->addHook('saveReady', $this, 'gather'); 
             $this->pages->addHookAfter('save', $this, 'insert'); 
+            // add hook that clears stored data for deleted pages
+            $this->pages->addHookAfter('deleted', $this, 'cleanupDeleted');
             // add hook that injects additional scripts and/or styles
             $this->addHookAfter('ProcessController::execute', $this, 'inject');
             // add new property versionControlFields to Template object
@@ -285,6 +287,23 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             $this->db->query($sql);
         }
 
+    }
+
+    /**
+     * Remove previously stored data for deleted page
+     *
+     * @param HookEvent $event
+     */
+    protected function cleanupDeleted(HookEvent $event) {
+
+        $page = $event->arguments[0];
+
+        $t1 = self::TABLE_NAME;
+        $t2 = self::DATA_TABLE_NAME;
+        $sql = "DELETE $t1, $t2 FROM $t1, $t2 WHERE $t1.pages_id = $page AND $t2.{$t1}_id = $t1.id";
+
+        $this->db->query($sql);
+        
     }
 
     /**
