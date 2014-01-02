@@ -42,6 +42,7 @@ $(function() {
         // things are presented, loading animation etc.)
         $('.field-revisions a').bind('click', function() {
             if ($(this).hasClass('ui-state-active')) return false;
+            var settings = {};
             var $this = $(this);
             var $if = $this.parents('.Inputfield:first');
             var field = $this.parents('.field-revisions:first').attr('data-field');
@@ -58,43 +59,47 @@ $(function() {
                 // (ProcessWire commit 2298dc0035751ad940cac48fd2a1129585c9581f
                 // removes said tag, but older versions still need this fix)
                 $content.find('input:first').parent('p').css('margin-top', 0);
+            } else if ($if.hasClass('InputfieldPage')) {
+                // for some inputfield types we need to get pre-rendered markup
+                // (HTML) instead of raw data as JSON
+                settings = { render: 'Input' };
             }
             $content.css('position', 'relative').prepend($loading.fadeIn(250));
-            $.get(if_url+'get', {id: $this.attr('data-revision')}, function(json) {
-                $.each(json, function(property, data) {
-                    var language = property.replace('data', '');
-                    if (language) language = "__"+language;
-                    if (typeof tinyMCE != "undefined" && tinyMCE.get('Inputfield_'+field+language)) {
-                        // TinyMCE inputfield
-                        tinyMCE.get('Inputfield_'+field+language).setContent(data);
-                    } else if ($if.find('.InputfieldCKEditorInline').length) {
-                        // CKeditor inputfield in inline mode
-                        $if.find('.InputfieldCKEditorInline').html(data);
-                    } else if (typeof CKEDITOR != "undefined" && CKEDITOR.instances['Inputfield_'+field+language]) {
-                        // CKEditor inputfield
-                        CKEDITOR.instances['Inputfield_'+field+language].setData(data);
-                    } else if ($if.find('textarea').length) {
-                        // Textarea inputfield (or any other inputfield using
-                        // <textarea> HTML element)
-                        $if.find('textarea[name='+field+language+']').html(data);
-                    } else if ($if.hasClass('InputfieldPage')) {
-                        // Page inputfield
-                        var settings = { render: 'Input' };
-                        $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(html) {
-                            $if.find('> .InputfieldContent').html(html);
+            $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(data) {
+                if (settings.render == "Input") {
+                    // format of returned data is HTML
+                    $if.find('> .InputfieldContent').html(data);
+                } else {
+                    // format of returned data is JSON
+                    $.each(data, function(property, value) {
+                        var language = property.replace('data', '');
+                        if (language) language = "__"+language;
+                        if (typeof tinyMCE != "undefined" && tinyMCE.get('Inputfield_'+field+language)) {
+                            // TinyMCE inputfield
+                            tinyMCE.get('Inputfield_'+field+language).setContent(value);
+                        } else if ($if.find('.InputfieldCKEditorInline').length) {
+                            // CKeditor inputfield in inline mode
+                            $if.find('.InputfieldCKEditorInline').html(value);
+                        } else if (typeof CKEDITOR != "undefined" && CKEDITOR.instances['Inputfield_'+field+language]) {
+                            // CKEditor inputfield
+                            CKEDITOR.instances['Inputfield_'+field+language].setData(value);
+                        } else if ($if.find('textarea').length) {
+                            // Textarea inputfield (or any other inputfield using
+                            // <textarea> HTML element)
+                            $if.find('textarea[name='+field+language+']').html(value);
+                        } else {
+                            // Text inputfield (or any other inputfield using
+                            // <input> HTML element)
+                            var $input = $if.find('input[name='+field+language+']');
+                            if ($input.hasClass('hasDatepicker')) $input.datepicker("setDate", new Date(value));
+                            else if ($if.hasClass('InputfieldCheckbox')) $input.prop("checked", value == $input.val() ? true : false);
+                            else $input.val(value);
+                        }
+                        $loading.fadeOut(350, function() {
+                            $(this).remove();
                         });
-                    } else {
-                        // Text inputfield (or any other inputfield using
-                        // <input> HTML element)
-                        var $input = $if.find('input[name='+field+language+']');
-                        if ($input.hasClass('hasDatepicker')) $input.datepicker("setDate", new Date(data));
-                        else if ($if.hasClass('InputfieldCheckbox')) $input.prop("checked", data == $input.val() ? true : false);
-                        else $input.val(data);
-                    }
-                    $loading.fadeOut(350, function() {
-                        $(this).remove();
                     });
-                });
+                }
             });
             return false;
         });
