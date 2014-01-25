@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 120,
+            'version' => 121,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -473,6 +473,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      * Original code for this method was posted by SteveB at the ProcessWire support forum:
      * http://processwire.com/talk/topic/2892-module-version-control-for-text-fields/?p=50438
      *
+     * @author Teppo Koivula, SteveB
      * @param HookEvent $event
      * @return null|false
      */
@@ -503,6 +504,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      * Original code for this method was posted by SteveB at the ProcessWire support forum:
      * http://processwire.com/talk/topic/2892-module-version-control-for-text-fields/?p=50438
      * 
+     * @author Teppo Koivula, SteveB
      * @param Page $page
      * @param mixed $time
      * @return array
