@@ -17,13 +17,17 @@ the field to that specific revision.
 
 ## Supported fieldtypes and inputfields
 
-Currently supported fieldtypes include these:
+Currently supported fieldtypes:
 
   * Email
   * Datetime
   * Text (regular and multi-language)
   * Textarea (regular and multi-language)
   * Page Title (regular and multi-language)
+  * Checkbox
+  * Integer
+  * Float
+  * URL
   
 These fieldtypes are confirmed to work properly with this module. If fieldtype
 isn't listed here, it doesn't necessarily mean that it's not supported - just
