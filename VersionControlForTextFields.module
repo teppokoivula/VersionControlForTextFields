@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 123,
+            'version' => 124,
             'singular' => true,
             'autoload' => true,
             'installs' => 'ProcessRevisionHistoryForTextFields'
@@ -61,6 +61,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                 'FieldtypeFloat',
                 'FieldtypeURL',
                 // 'FieldtypePage',
+                'FieldtypeModule',
             )
         );
     }
@@ -150,8 +151,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field->label = __("Consider these fieldtypes compatible with this module");
         $selectable_fieldtypes = $modules->find('className^=Fieldtype');
         foreach ($selectable_fieldtypes as $key => $fieldtype) {
-            // remove fieldtypes already known to be incompatible
-            if (strpos($fieldtype->className, 'FieldtypeFieldset') === 0) {
+            // remove native fieldtypes known to be incompatible
+            if ($fieldtype == "FieldtypePassword" || strpos($fieldtype->name, "FieldtypeFieldset") === 0) {
                 unset($selectable_fieldtypes[$key]);
             }
         }

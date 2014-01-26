@@ -28,6 +28,7 @@ Currently supported fieldtypes:
   * Integer
   * Float
   * URL
+  * Module
   
 These fieldtypes are confirmed to work properly with this module. If fieldtype
 isn't listed here, it doesn't necessarily mean that it's not supported - just
@@ -40,6 +41,7 @@ Following inputfields are supported:
   * CKEditor (regular and inline mode)
   * Text (+ other inputfields using `<input>` HTML element, such as Email)
   * Textarea (+ other inputfields using regular `<textarea>` HTML element)
+  * Select
 
 ## Getting started
 
