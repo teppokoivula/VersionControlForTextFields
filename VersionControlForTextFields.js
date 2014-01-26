@@ -68,7 +68,7 @@ $(function() {
             $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(data) {
                 if (settings.render == "Input") {
                     // format of returned data is HTML
-                    $if.find('> .InputfieldContent').html(data);
+                    $content.html(data);
                 } else {
                     // format of returned data is JSON
                     $.each(data, function(property, value) {
