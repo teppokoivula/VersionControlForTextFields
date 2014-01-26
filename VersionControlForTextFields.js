@@ -59,7 +59,7 @@ $(function() {
                 // (ProcessWire commit 2298dc0035751ad940cac48fd2a1129585c9581f
                 // removes said tag, but older versions still need this fix)
                 $content.find('input:first').parent('p').css('margin-top', 0);
-            } else if ($if.hasClass('InputfieldPage')) {
+            } else if ($if.hasClass('InputfieldPage') || $if.hasClass('InputfieldSelect')) {
                 // for some inputfield types we need to get pre-rendered markup
                 // (HTML) instead of raw data as JSON
                 settings = { render: 'Input' };
@@ -68,7 +68,9 @@ $(function() {
             $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(data) {
                 if (settings.render == "Input") {
                     // format of returned data is HTML
-                    $content.html(data);
+                    var before = $content.children('p.description:first');
+                    var after = $content.children('p.notes:first');
+                    $content.html(data).prepend(before).append(after);
                 } else {
                     // format of returned data is JSON
                     $.each(data, function(property, value) {
