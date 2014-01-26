@@ -28,6 +28,7 @@ Currently supported fieldtypes:
   * Integer
   * Float
   * URL
+  * Page
   * Module
   
 These fieldtypes are confirmed to work properly with this module. If fieldtype
