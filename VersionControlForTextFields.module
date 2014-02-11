@@ -30,10 +30,13 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 125,
+            'version' => 130,
             'singular' => true,
             'autoload' => true,
-            'installs' => 'ProcessRevisionHistoryForTextFields'
+            'installs' => array(
+                'ProcessRevisionHistoryForTextFields',
+                'PageSnapshot',
+            ),
         ); 
     }
 
@@ -134,10 +137,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_templates";
         $field->label = __("Enable history for these templates");
-        $selectable_templates = wire('templates')->getAll();
+        $selectable_templates = wire('templates')->getAll()->makeCopy();
         foreach ($selectable_templates as $key => $template) {
             // remove system templates (including repeaters)
-            if (($template->flags & Template::flagSystem)) {
+            if ($template->flags & Template::flagSystem) {
                 unset($selectable_templates[$key]);
             }
         }
@@ -233,16 +236,16 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         if (count($this->enabled_templates) && count($this->enabled_fields)) {
             // add hooks that gather information and trigger insert
-            $this->pages->addHook('saveReady', $this, 'gather'); 
-            $this->pages->addHookAfter('save', $this, 'insert'); 
+            $this->addHook('Pages::saveReady', $this, 'gather'); 
+            $this->addHookAfter('Pages::save', $this, 'insert'); 
             // add hook that clears stored data for deleted pages
-            $this->pages->addHookAfter('deleted', $this, 'cleanupDeleted');
+            $this->addHookAfter('Pages::deleted', $this, 'cleanupDeleted');
             // add hook that injects additional scripts and/or styles
             $this->addHookAfter('ProcessController::execute', $this, 'inject');
             // add new property versionControlFields to Template object
             $this->addHookProperty('Template::versionControlFields', $this, 'versionControlFields');
-            // add new method snapshot to Page objects
-            $this->addHook('Page::snapshot', $this, 'pageSnapshot');
+            // get and init (and install if not yet installed) page snapshot
+            $this->modules->getInstall('PageSnapshot')->init();
         }
 
     }
@@ -327,8 +330,11 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         // if page has no id, it's currently being added
         $page_id = $page->id ? $page->id : 0;
 
-        // check if tracking values has been enabled to current pages template
-        if (!in_array($page->template->id, $this->enabled_templates)) return;
+        // check if tracking values has been enabled for template of current
+        // page or (in case of repeater pages) template of containing page
+        $template_id = $page->template->id;
+        if ($page instanceof RepeaterPage) $template_id = $page->getForPage()->template->id;
+        if (!in_array($template_id, $this->enabled_templates)) return;
 
         if ($page->isChanged()) {
             foreach ($page->template->fields as $field) {
@@ -360,6 +366,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
     public function insert(HookEvent $event) {
 
         $page = $event->arguments[0];
+
+        // return if current page is repeater parent (for-page-n or for-field-n)
+        if ($page->template == "admin" && strpos($page->name, "for-") === 0) return;
+
         $users_id = $this->user->id;
         $username = $this->user->name;
         if (!isset($this->page_data[$page->id]) && isset($this->page_data[0])) {
@@ -465,82 +475,6 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         }
 
         $event->return = $fields;
-
-    }
-
-    /**
-     * Return page in the state it was at given time
-     * 
-     * Original code for this method was posted by SteveB at the ProcessWire support forum:
-     * http://processwire.com/talk/topic/2892-module-version-control-for-text-fields/?p=50438
-     *
-     * @author Teppo Koivula, SteveB
-     * @param HookEvent $event
-     * @return null|false
-     */
-    public function pageSnapshot(HookEvent $event) {
-
-        $page = $event->object;
-        $time = $event->arguments[0];
-
-        $data = $this->snapshot($page, $time);
-        if (!$data) return false;
-
-        $page->of(false);
-        foreach ($data as $key => $value) {
-            list($field, $property) = explode(".", $key);
-            $language = str_replace("data", "", $property);
-            if (!$language) $page->$field = $value;
-            else if ($language = $this->languages->get((int) $language)) {
-                $page->$field->setLanguageValue($language, $value);
-            }
-        }
-        $page->of(true);
-        
-    }
-
-    /**
-     * Return array of contents of given page at specific time
-     * 
-     * Original code for this method was posted by SteveB at the ProcessWire support forum:
-     * http://processwire.com/talk/topic/2892-module-version-control-for-text-fields/?p=50438
-     * 
-     * @author Teppo Koivula, SteveB
-     * @param Page $page
-     * @param mixed $time
-     * @return array
-     */
-    public function snapshot(Page $page, $time = null) {   
-
-        if (!is_integer($time)) $time = strtotime($time);
-        if (empty($time)) $time = time();
-        
-        // find values
-        $t1 = self::TABLE_NAME;
-        $t2 = self::DATA_TABLE_NAME;
-        $sql = "
-        SELECT t1.fields_id, t2.property, t2.data
-        FROM (
-            SELECT MAX(id) id, fields_id
-            FROM $t1
-            WHERE pages_id = $page AND timestamp <= FROM_UNIXTIME($time)
-            GROUP BY fields_id
-        ) AS t1
-        INNER JOIN $t2 AS t2
-        ON t2.{$t1}_id = t1.id
-        ";
-        $result = $this->db->query($sql);
-
-        // generate data (associative array)
-        $data = array();
-        while ($row = mysqli_fetch_assoc($result)) {
-            $field = $this->fields->get($row['fields_id']);
-            if (!array_key_exists($field->name.$row['property'], $data)) {
-                $data[$field->name . "." . $row['property']] = $row['data'];
-            }
-        }
-
-        return $data;
 
     }
 
