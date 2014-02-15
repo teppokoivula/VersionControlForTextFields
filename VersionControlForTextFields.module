@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 130,
+            'version' => 131,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -401,8 +401,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
                     $properties = array();
                     foreach ($this->languages as $language) {
                         $language_value = $value->getLanguageValue($language);
-                        if (!$language->isDefault()) $property .= $language->id;
-                        $properties[$property] = $language_value;
+                        $properties[$property . ($language->isDefault() ? "" : $language)] = $language_value;
                     }
                 } else {
                     $properties = array($property => $value);
