@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 133,
+            'version' => 134,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -137,14 +137,12 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_templates";
         $field->label = __("Enable history for these templates");
-        $selectable_templates = wire('templates')->getAll()->makeCopy();
-        foreach ($selectable_templates as $key => $template) {
-            // remove system templates (including repeaters)
-            if ($template->flags & Template::flagSystem) {
-                unset($selectable_templates[$key]);
+        foreach (wire('templates')->getAll() as $key => $template) {
+            // include only non-system templates
+            if (~ $template->flags & Template::flagSystem) {
+                $field->addOption($key, $template);
             }
         }
-        $field->addOptions($selectable_templates->getArray());
         if (isset($data['enabled_templates'])) $field->value = $data['enabled_templates'];
         $fields->add($field);
         
