@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 132,
+            'version' => 133,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -241,7 +241,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             // add hook that clears stored data for deleted pages
             $this->addHookAfter('Pages::deleted', $this, 'cleanupDeleted');
             // add hook that injects additional scripts and/or styles
-            $this->addHookAfter('ProcessController::execute', $this, 'inject');
+            $this->addHookAfter('ProcessPageEdit::execute', $this, 'inject');
             // add new property versionControlFields to Template object
             $this->addHookProperty('Template::versionControlFields', $this, 'versionControlFields');
             // get and init (and install if not yet installed) page snapshot
@@ -434,8 +434,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      */
     public function inject(HookEvent $event) {
 
-        // this only applies to process page edit and non-XHR requests
-        if ($this->page->process !== "ProcessPageEdit" || $this->config->ajax) return;
+        // this only applies to GET requests
+        if ($_SERVER['REQUEST_METHOD'] !== "GET") return;
 
         // make sure that value tracking is enabled for template of
         // the page currently being edited
