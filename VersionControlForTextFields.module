@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 131,
+            'version' => 132,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -434,8 +434,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      */
     public function inject(HookEvent $event) {
 
-        // this only applies to process page edit
-        if ($this->page->process !== "ProcessPageEdit") return;
+        // this only applies to process page edit and non-XHR requests
+        if ($this->page->process !== "ProcessPageEdit" || $this->config->ajax) return;
 
         // make sure that value tracking is enabled for template of
         // the page currently being edited
