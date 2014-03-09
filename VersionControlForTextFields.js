@@ -156,7 +156,7 @@ $(function() {
         // when mouse cursor is moved on a revision link, show compare/diff
         // link, which -- when clicked -- loads a text diff for displaying
         // differences between selected revision and current revision.
-        $('.field-revisions li > a').bind('hover', function() {
+        $('.field-revisions.diff li > a').bind('hover', function() {
             $('.compare-revisions').remove();
             if (!$(this).hasClass('ui-state-active')) {
                 // in this case r1 refers to current revision, r2 to selected

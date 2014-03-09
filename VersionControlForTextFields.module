@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 134,
+            'version' => 135,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -125,31 +125,13 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $defaults = self::getDefaultData();
         $data = array_merge($defaults, $data);
 
-        // notice about additional config options
-        $field = $modules->get("InputfieldMarkup");
-        $field->label = __("Additional config options");
-        $link_module = "ProcessRevisionHistoryForTextFields";
-        $link_markup = "<a href='".wire('page')->url."edit?name=$link_module'>$link_module.module</a>";
-        $field->set('markupText', sprintf(__("You can find additional config options related to this module at %s."), $link_markup));
-        $fields->add($field);
-
-        // for which templates should we track values?
-        $field = $modules->get("InputfieldAsmSelect");
-        $field->name = "enabled_templates";
-        $field->label = __("Enable history for these templates");
-        foreach (wire('templates')->getAll() as $key => $template) {
-            // include only non-system templates
-            if (~ $template->flags & Template::flagSystem) {
-                $field->addOption($key, $template);
-            }
-        }
-        if (isset($data['enabled_templates'])) $field->value = $data['enabled_templates'];
-        $fields->add($field);
-        
         // define fieldtypes considered compatible with this module
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "compatible_fieldtypes";
-        $field->label = __("Consider these fieldtypes compatible with this module");
+        $field->label = __("Compatible fieldtypes");
+        $field->description = __("Fieldtypes considered compatible with this module.");
+        $field->collapsed = Inputfield::collapsedYes;
+        $field->icon = 'list-alt';
         $selectable_fieldtypes = $modules->find('className^=Fieldtype');
         foreach ($selectable_fieldtypes as $key => $fieldtype) {
             // remove native fieldtypes known to be incompatible
@@ -162,11 +144,29 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         if (isset($data['compatible_fieldtypes'])) $field->value = $data['compatible_fieldtypes'];
         $fields->add($field);
         
+        // for which templates should we track values?
+        $field = $modules->get("InputfieldAsmSelect");
+        $field->name = "enabled_templates";
+        $field->label = __("Enable history for these templates");
+        $field->notes = __("Only non-system templates can be selected.");
+        $field->icon = "file-o";
+        $field->columnWidth = 50;
+        foreach (wire('templates')->getAll() as $key => $template) {
+            // include only non-system templates
+            if (~ $template->flags & Template::flagSystem) {
+                $field->addOption($key, $template);
+            }
+        }
+        if (isset($data['enabled_templates'])) $field->value = $data['enabled_templates'];
+        $fields->add($field);
+        
         // for which fields should we track values?
         $field = $modules->get("InputfieldAsmSelect");
         $field->name = "enabled_fields";
         $field->label = __("Enable history for these fields");
         $field->notes = __("Only fields of compatible fieldtypes can be selected.");
+        $field->icon = "file-text-o";
+        $field->columnWidth = 50;
         $types = implode($data['compatible_fieldtypes'], "|");
         $field->addOptions(wire('fields')->find("type=$types")->getArray());
         if (isset($data['enabled_fields'])) $field->value = $data['enabled_fields'];
@@ -190,6 +190,8 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         }
         $field->label = __("For how long should we retain collected data?");
         $field->name = "data_max_age";
+        $field->icon = "clock-o";
+        $field->columnWidth = 50;
         $fields->add($field);
 
         // should we limit the amount of revisions saved for each field + page combination?
@@ -198,7 +200,18 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field->label = __("Revisions retained for each field + page combination");
         $field->addOptions(array(10 => '10', 20 => '20', 50 => '50', 100 => '100'));
         $field->notes = __("Leave empty to not limit stored revisions at all.");
+        $field->icon = "random";
+        $field->columnWidth = 50;
         if (isset($data['data_row_limit'])) $field->value = $data['data_row_limit'];
+        $fields->add($field);
+
+        // notice about additional config options
+        $field = $modules->get("InputfieldMarkup");
+        $field->label = __("Additional config options");
+        $field->icon = "gear";
+        $link_module = "ProcessRevisionHistoryForTextFields";
+        $link_markup = "<a href='".wire('page')->url."edit?name=$link_module'>$link_module</a>";
+        $field->set('markupText', sprintf(__("You can find additional config options related to this module at %s"), $link_markup));
         $fields->add($field);
 
         return $fields;
