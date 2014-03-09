@@ -256,7 +256,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             // add new property versionControlFields to Template object
             $this->addHookProperty('Template::versionControlFields', $this, 'versionControlFields');
             // get and init (and install if not yet installed) page snapshot
-            $this->modules->getInstall('PageSnapshot')->init();
+            $this->modules->get('PageSnapshot')->init();
         }
 
     }
