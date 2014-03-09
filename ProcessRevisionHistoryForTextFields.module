@@ -9,7 +9,7 @@
  *
  * See comments of main module for more information.
  *
- * @copyright Copyright (c) 2013, Teppo Koivula
+ * @copyright Copyright (c) 2013-2014, Teppo Koivula
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  *
  * ProcessWire 2.x 
@@ -124,7 +124,7 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
 
         $field = $modules->get("InputfieldInteger");
         $field->name = "diff_timeout";
-        $field->label = __("Diff timeout");
+        $field->label = __("Diff Timeout");
         $field->description = __("If diff computation takes longer than this, best solution to date is returned. While correct, it may not be optimal.");
         $field->notes = __("A timeout of '0' allows for unlimited computation.");
         $field->showIf = "diff_disabled=0";
@@ -277,6 +277,15 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
 
     }
 
+    /**
+     * Render diff of two given revisions
+     * 
+     * Revisions are defined by GET param 'revisions', which should contain two
+     * revisions separated by colon ('?revisions=41:42'). Diff is computed with
+     * JavaScript library diff_match_patch and returned as HTML div element, id
+     * attribute set to 'diff', and rudimentary CSS styles.
+     *
+     */
     public function ___executeDiff() {
         
         // should date formatting occur?
@@ -354,7 +363,10 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
     }
 
     /**
-     * Executed when /processwire/setup/revision-history-for-text-fields/get is accessed
+     * Render output for specific revision
+     *
+     * Revision is defined by GET param 'id'. Output is either rendered HTML
+     * markup for an inputfield or JSON string.
      *
      */
     public function ___executeGet() {
