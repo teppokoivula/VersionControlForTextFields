@@ -107,7 +107,6 @@ class ProcessRevisionHistoryForTextFields extends Process implements Configurabl
         $field->description = __("Used when displaying version history data in page edit.");
         $field->notes = __("See the [PHP date](http://www.php.net/manual/en/function.date.php) function reference for more information on how to customize this format.");
         $field->value = $data['date_format'] ? $data['date_format'] : $defaults['date_format'];
-        $field->columnWidth = 50;
         $field->icon = "clock-o";
         $fields->add($field);
 
