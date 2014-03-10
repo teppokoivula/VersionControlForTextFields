@@ -1,12 +1,12 @@
 $(function() {
 
-    // variables; current page ID, revisions interface URL, additional settings
-    var pages_id = $('#PageIDIndicator').text();
-    var if_url = config.urls.admin+'setup/revision-history-for-text-fields/';
+    // configuration: "run-time" settings are defined here, "constant" settings
+    // (translations, interface URL etc.) in VersionControlForTextFields.module
     var settings = { empty: true, render: 'HTML' };
+    var moduleConfig = config.VersionControlForTextFields;
 
     // fetch revision data for this page as HTML markup
-    $.get(if_url, { pages_id: pages_id, settings: settings }, function(data) {
+    $.get(moduleConfig.processPage, { pages_id: moduleConfig.pageID, settings: settings }, function(data) {
         
         // prepend data (#text-field-history) to body
         $('body').prepend(data);
@@ -65,7 +65,7 @@ $(function() {
                 settings = { render: 'Input' };
             }
             $content.css('position', 'relative').prepend($loading.fadeIn(250));
-            $.get(if_url+'get', { id: $this.attr('data-revision'), settings: settings }, function(data) {
+            $.get(moduleConfig.processPage+'get', { id: $this.attr('data-revision'), settings: settings }, function(data) {
                 if (settings.render == "Input") {
                     // format of returned data is HTML
                     var before = $content.children('p.description:first');
@@ -163,8 +163,8 @@ $(function() {
                 // revision. diff is fetched as HTML from revision interface.
                 var r1 = $(this).parents('.field-revisions:first').find('.ui-state-active').attr('data-revision');
                 var r2 = $(this).attr('data-revision');
-                var href = if_url+'diff/?revisions='+r1+':'+r2;
-                var label = $('#version-control-translations span[data-term=compare_with_current]').text();
+                var href = moduleConfig.processPage+'diff/?revisions='+r1+':'+r2;
+                var label = moduleConfig.i18n.compareWithCurrent;
                 $(this).before('<div class="compare-revisions"><a class="diff-trigger" href="'+href+'">'+label+'</a></div>');
                 // note: following (and some other actions in this file) could
                 // be achieved more efficiently with .on(), but since that was

@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 136,
+            'version' => 137,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -460,10 +460,16 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 		if (is_file($this->config->paths->$class . "$class.css")) $this->config->styles->add($this->config->urls->$class . "$class.css?v=$version"); 
 		if (is_file($this->config->paths->$class . "$class.js")) $this->config->scripts->add($this->config->urls->$class . "$class.js?v=$version"); 
 
-        // inject translatable terms
-        $event->return .= "<div id='version-control-translations' style='display: none;'>"
-                       . "<span data-term='compare_with_current'>" . __("Compare with current") . "</span>"
-                       . "</div>";
+        // inject settings and translations
+        $process = $this->modules->getModuleID("ProcessRevisionHistoryForTextFields");
+        $processPage = $this->pages->get("process=$process");
+        $this->config->js('VersionControlForTextFields', array(
+            'i18n' => array(
+                'compareWithCurrent' => __("Compare with current"),
+            ),
+            'pageID' => $page->id,
+            'processPage' => $processPage->url(),
+        ));
 
     }
 
