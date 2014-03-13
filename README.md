@@ -58,6 +58,17 @@ Control For Text Fields (module config.) Minor settings can also be found from
 related Process modules config: Admin > Modules > Revision History For Text
 Fields.
 
+## Diff Match and Patch
+
+The Diff Match and Patch libraries offer robust algorithms to perform the
+operations required for synchronizing plain text. In the scope of current
+module, the JavaScript implementation of Diff Match and Patch is used to
+render diff between original and current field values.
+
+Diff Match and Patch is copyright (c) 2006 Google Inc. and released under
+the Apache License, Version 2.0. For more information about this library,
+please visit http://code.google.com/p/google-diff-match-patch/.
+
 ## License
 
 This program is free software; you can redistribute it and/or
