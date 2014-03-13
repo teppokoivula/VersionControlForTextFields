@@ -63,7 +63,7 @@ Fields.
 The Diff Match and Patch libraries offer robust algorithms to perform the
 operations required for synchronizing plain text. In the scope of current
 module, the JavaScript implementation of Diff Match and Patch is used to
-render diff between original and current field values.
+render diff between different revisions of a field value.
 
 Diff Match and Patch is copyright (c) 2006 Google Inc. and released under
 the Apache License, Version 2.0. For more information about this library,
