@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 137,
+            'version' => 138,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -450,7 +450,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
 
         // make sure that value tracking is enabled for template of
         // the page currently being edited
-        $page = $this->process->getPage(); 
+        if ($this->input->get->id) $page = $this->pages->get((int) $this->input->get->id);
         if (!$page || !$page->id || !in_array($page->template->id, $this->enabled_templates)) return;
 
         // inject scripts and styles
