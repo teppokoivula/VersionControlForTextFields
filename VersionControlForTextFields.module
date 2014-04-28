@@ -30,7 +30,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             'summary' => 'Simplified version control for text type fields',
             'href' => 'http://modules.processwire.com/modules/version-control-for-text-fields/',
             'author' => 'Teppo Koivula',
-            'version' => 138,
+            'version' => 139,
             'singular' => true,
             'autoload' => true,
             'installs' => array(
@@ -214,6 +214,19 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         $field->set('markupText', sprintf(__("You can find additional config options related to this module at %s"), $link_markup));
         $fields->add($field);
 
+        // skip dropping tables during uninstall?
+        $field = $modules->get("InputfieldCheckbox");
+        $field->name = "skip_drop_tables";
+        $field->label = __("Don't drop tables during uninstall");
+        $field->description = __("This setting is most useful when planning to transition (or upgrade) to Version Control module. During uninstall custom database tables will remain intact and data gathered by this module will be imported into Version Control during it's own install procedure.");
+        $field->notes = __("Before upgrading to Version Control, please completely uninstall this module first, including PageSnapshot and ProcessVersionControlForTextFields.");
+        $field->collapsed = Inputfield::collapsedYes;
+        if (isset($data[$field->name]) && $data[$field->name]) {
+            $field->checked = "checked";
+            $field->collapsed = Inputfield::collapsedNo;
+        }
+        $fields->add($field);
+        
         return $fields;
 
     }
@@ -504,7 +517,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         
         // main table, contains mostly metadata
         $sql = "
-        CREATE TABLE " . self::TABLE_NAME . " (
+        CREATE TABLE IF NOT EXISTS " . self::TABLE_NAME . " (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             pages_id INT UNSIGNED NOT NULL,
             fields_id INT UNSIGNED NOT NULL,
@@ -523,7 +536,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
         // @todo: add other methods for storing data, ie. files,
         // and make creating and using this table optional.
         $sql = "
-        CREATE TABLE " . self::DATA_TABLE_NAME . " (
+        CREATE TABLE IF NOT EXISTS " . self::DATA_TABLE_NAME . " (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             " . self::TABLE_NAME . "_id INT UNSIGNED NOT NULL,
             property VARCHAR(255) NOT NULL,
@@ -544,8 +557,10 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
      * Drops database table associated with this module.
      *
      */
-     public function ___uninstall() {
-
+    public function ___uninstall() {
+        
+        if ($this->skip_drop_tables) return;
+        
         // drop main table if exists
         $sql = "SHOW TABLES LIKE '" . self::TABLE_NAME . "'";
         $result = $this->db->query($sql);
@@ -553,7 +568,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             $this->db->query("DROP TABLE " . self::TABLE_NAME);
             $this->message("Dropped Table: " . self::TABLE_NAME);
         }
-
+        
         // drop data table if exists
         $sql = "SHOW TABLES LIKE '" . self::DATA_TABLE_NAME . "'";
         $result = $this->db->query($sql);
@@ -561,7 +576,7 @@ class VersionControlForTextFields extends WireData implements Module, Configurab
             $this->db->query("DROP TABLE " . self::DATA_TABLE_NAME);
             $this->message("Dropped Table: " . self::DATA_TABLE_NAME);
         }
-
+        
     }
     
 }
