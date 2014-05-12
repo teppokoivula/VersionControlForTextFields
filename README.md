@@ -2,7 +2,7 @@ Version Control For Text Fields
 ===============================
 
 Simplified version control for text type fields in ProcessWire CMS/CMF.
-Copyright (c) 2013 Teppo Koivula
+Copyright (c) 2013-2014 Teppo Koivula
 
 This module uses hooks provided by ProcessWire to catch page edits, finds out
 which fields were changed and if text fields (see list of currently supported
@@ -14,6 +14,18 @@ While editing a page with version control enabled, revision toggle (link which
 opens list of previous revisions) is shown for fields with earlier revisions
 available. From this list user can select a revision and rollback value of
 the field to that specific revision.
+
+## Version Control For Text Fields or Version Control?
+
+There's a new and improved version of this module available, known simply as
+'Version Control'. It contains multiple important improvements, such as support
+for file fields, but there's also a catch: *it requires ProcessWire 2.4.1 or
+later*.
+
+If you're using at least aforementioned version of ProcessWire, please take a
+look at https://github.com/teppokoivula/VersionControl. While Version Control
+For Text Fields will remain an alternative for older versions of ProcessWire,
+it most likely won't be gaining feature updates anymore.
 
 ## Supported fieldtypes and inputfields
 
